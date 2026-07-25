@@ -8,13 +8,20 @@
   --color-hairline-2: #2a2a2c;
   --color-paper: #e8e4dc;
   --color-muted: #8a8a88;
-  --color-faint: #555555;
+  --color-faint: #7c7c7c;
   --color-vermilion: #c23b22;
+  --color-seal: #f5f0e6;
   --color-n1: #4a9eff;
   --color-n2: #4caf50;
+  --color-n3: #e0685a;
+  --color-n4: #b07fd0;
+  --color-n5: #d4a017;
+  --color-n6: #4fb3a8;
+  --color-n7: #e8e4dc;
+  --color-n8: #8a8a88;
 
-  --font-serif-sc: var(--font-noto-serif-sc), Georgia, serif;
-  --font-mono-game: 'Courier New', ui-monospace, 'SFMono-Regular', monospace;
+  --font-serif-sc: var(--font-noto-serif-sc, Georgia), Georgia, serif;
+  --font-mono-game: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
 
   --animate-board-shake: board-shake 0.45s ease;
 }
@@ -32,6 +39,6 @@ html {
 }
 
 ::selection {
-  background: #c23b22;
-  color: #f5f0e6;
+  background: var(--color-vermilion);
+  color: var(--color-seal);
 }
