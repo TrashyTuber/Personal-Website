@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js (App Router) · TypeScript · Tailwind CSS v4 · Vitest + React Testing Library · deployed on Vercel.
 
-**Design tokens (single source of truth for all tasks):** ink `#0b0b0c`, surface `#101012`, tile `#19191b`, hairline `#1e1e20`, hairline-2 `#2a2a2c`, paper `#e8e4dc`, muted `#8a8a88`, faint `#555555`, vermilion `#c23b22`, n1 `#4a9eff`, n2 `#4caf50`. Fonts: Noto Serif SC (display/hanzi) + Courier New stack (game UI).
+**Design tokens (single source of truth for all tasks):** ink `#0b0b0c`, surface `#101012`, tile `#19191b`, hairline `#1e1e20`, hairline-2 `#2a2a2c`, paper `#e8e4dc`, muted `#8a8a88`, faint `#7c7c7c`, vermilion `#c23b22`, seal `#f5f0e6`, board numbers n1 `#4a9eff`, n2 `#8fd694`, n3 `#d94f33`, n4 `#b07fd0`, n5 `#d4a017`, n6 `#4fb3a8`, n7 `#e8e4dc`, n8 `#8a8a88` (all ≥4.5:1 on surface; n2/n3 luminance-separated for color-vision deficiency). Fonts: Noto Serif SC (display/hanzi) + Courier New stack (game UI).
 
 **Content the engineer cannot invent:** Anything marked `REPLACE:` in content files is Yiming's real data (project blurbs, music pieces, about text, GitHub/LinkedIn URLs, `public/cv.pdf`). Build with the markers in place; the final task collects them into a list for Yiming.
 
@@ -98,13 +98,20 @@ git commit -m "chore: scaffold Next.js app with Vitest tooling"
   --color-hairline-2: #2a2a2c;
   --color-paper: #e8e4dc;
   --color-muted: #8a8a88;
-  --color-faint: #555555;
+  --color-faint: #7c7c7c;
   --color-vermilion: #c23b22;
+  --color-seal: #f5f0e6;
   --color-n1: #4a9eff;
-  --color-n2: #4caf50;
+  --color-n2: #8fd694;
+  --color-n3: #d94f33;
+  --color-n4: #b07fd0;
+  --color-n5: #d4a017;
+  --color-n6: #4fb3a8;
+  --color-n7: #e8e4dc;
+  --color-n8: #8a8a88;
 
-  --font-serif-sc: var(--font-noto-serif-sc), Georgia, serif;
-  --font-mono-game: 'Courier New', ui-monospace, 'SFMono-Regular', monospace;
+  --font-serif-sc: var(--font-noto-serif-sc, Georgia), Georgia, serif;
+  --font-mono-game: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
 
   --animate-board-shake: board-shake 0.45s ease;
 }
@@ -122,8 +129,8 @@ html {
 }
 
 ::selection {
-  background: #c23b22;
-  color: #f5f0e6;
+  background: var(--color-vermilion);
+  color: var(--color-seal);
 }
 ```
 
@@ -135,10 +142,14 @@ import { Noto_Serif_SC } from 'next/font/google';
 import './globals.css';
 
 const notoSerifSC = Noto_Serif_SC({
-  weight: ['300', '400', '600'],
+  weight: ['300', '400'],
   subsets: ['latin'],
   variable: '--font-noto-serif-sc',
   display: 'swap',
+  // Auto-fallback would apply Latin-tuned size-adjust metrics to CJK glyphs
+  // (layout shift on the hanzi wordmark) — disable and fall back plainly.
+  adjustFontFallback: false,
+  fallback: ['Georgia', 'serif'],
 });
 
 export const metadata: Metadata = {
@@ -152,8 +163,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={notoSerifSC.variable}>
-      <body className="min-h-screen bg-ink font-serif-sc text-paper antialiased">
-        <main className="md:pl-[72px]">{children}</main>
+      <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
+        <main className="flex-1 md:pl-[72px]">{children}</main>
       </body>
     </html>
   );
@@ -665,6 +676,8 @@ git commit -m "feat: minesweeper engine — chording and mine counter"
 - Create: `components/site-footer.tsx`
 - Modify: `app/layout.tsx`
 
+**Accessibility note:** wrap hanzi text (the wordmark 贾一茗, nav labels, the seal 贾) in `lang="zh-Hans"` attributes so screen readers use a Chinese voice and browsers pick Simplified-Chinese glyph forms.
+
 - [ ] **Step 1: Create `components/spine.tsx`**
 
 ```tsx
@@ -774,9 +787,9 @@ export default function SiteFooter() {
 - [ ] **Step 3: Wire both into `app/layout.tsx`** — replace the body contents:
 
 ```tsx
-      <body className="min-h-screen bg-ink font-serif-sc text-paper antialiased">
+      <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
         <Spine />
-        <main className="md:pl-[72px]">{children}</main>
+        <main className="flex-1 md:pl-[72px]">{children}</main>
         <SiteFooter />
       </body>
 ```
@@ -1896,6 +1909,8 @@ git commit -m "feat: minesweeper page — personal bests and playable board"
 - Add `.claude/settings.local.json` to `.gitignore`; rewrite `README.md` (it still describes the CNA scaffold/Geist).
 - Add `metadataBase` (Vercel URL) and basic `openGraph` metadata to `app/layout.tsx`; add `app/apple-icon.png` (rasterized seal).
 - Review `npm audit` output (12 highs inherited from create-next-app tree); fix only what doesn't break.
+- `app/icon.svg`: outline the 贾 glyph to a `<path>` (text in SVG favicons renders as tofu in CJK-less rasterizers like link unfurlers).
+- Optional post-launch perf: hand-subset the site's fixed ~40-60 hanzi into a self-hosted woff2 via `next/font/local` with preload (replaces the runtime Google CJK slices, ~748 KB unpreloaded today).
 
 - [ ] **Step 1: Full test suite and build**
 
