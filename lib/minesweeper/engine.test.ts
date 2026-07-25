@@ -5,18 +5,8 @@ import {
   placeMines,
   placeMinesAt,
 } from './engine';
+import { mulberry32 } from './test-utils';
 import type { SectionSpec } from './types';
-
-/** Deterministic PRNG for tests. */
-export function mulberry32(seed: number): () => number {
-  return () => {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 const SECTIONS: SectionSpec[] = [
   { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [10, 11] },
@@ -47,6 +37,15 @@ describe('createBoard', () => {
     expect(board.cells[11].state).toBe('revealed');
     expect(board.cells[0].state).toBe('hidden');
   });
+
+  test('throws when a section cell index is out of range', () => {
+    const bad: SectionSpec[] = [
+      { id: 'music', href: '/music', glyphs: ['音'], cells: [20] },
+    ];
+    expect(() =>
+      createBoard({ rows: 4, cols: 5, mineCount: 3, sections: bad }),
+    ).toThrow(/out of range/);
+  });
 });
 
 describe('neighbors', () => {
@@ -59,6 +58,11 @@ describe('neighbors', () => {
     const board = createBoard({ rows: 4, cols: 5, mineCount: 0 });
     expect(neighbors(board, 7)).toHaveLength(8);
   });
+
+  test('right-edge cell does not wrap around to the next row', () => {
+    const board = createBoard({ rows: 4, cols: 5, mineCount: 0 });
+    expect(neighbors(board, 9).sort((a, b) => a - b)).toEqual([3, 4, 8, 13, 14]);
+  });
 });
 
 describe('placeMinesAt', () => {
@@ -70,6 +74,12 @@ describe('placeMinesAt', () => {
     for (const i of [0, 1, 2, 3, 5, 6, 7, 8]) {
       expect(board.cells[i].adjacent).toBe(1);
     }
+  });
+
+  test('dedupes mine indices and reports an honest mineCount', () => {
+    const board = placeMinesAt(createBoard({ rows: 3, cols: 3, mineCount: 2 }), [4, 4]);
+    expect(board.cells.filter((c) => c.mine)).toHaveLength(1);
+    expect(board.mineCount).toBe(1);
   });
 });
 
@@ -84,5 +94,14 @@ describe('placeMines', () => {
     expect(mineIndices).toHaveLength(15);
     const forbidden = new Set([0, ...neighbors(board, 0), 10, 11]);
     expect(mineIndices.some((i) => forbidden.has(i))).toBe(false);
+  });
+
+  test('does not mutate the input board', () => {
+    const rng = mulberry32(42);
+    const base = createBoard({ rows: 8, cols: 12, mineCount: 15, sections: SECTIONS });
+    const out = placeMines(base, 0, rng);
+    expect(base.cells.every((c) => !c.mine)).toBe(true);
+    expect(base.minesPlaced).toBe(false);
+    expect(base.cells[0]).not.toBe(out.cells[0]);
   });
 });

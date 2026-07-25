@@ -17,6 +17,11 @@ export function createBoard(opts: CreateOptions): Board {
   }));
   for (const section of sections) {
     section.cells.forEach((index, i) => {
+      if (index < 0 || index >= rows * cols) {
+        throw new Error(
+          `section "${section.id}" cell index ${index} out of range for ${rows}x${cols} board`,
+        );
+      }
       cells[index].section = section.id;
       cells[index].glyph = section.glyphs[i];
       if (revealedSectionIds.includes(section.id)) {
@@ -50,8 +55,15 @@ function cloneCells(board: Board): Cell[] {
 
 export function placeMinesAt(board: Board, mineIndices: number[]): Board {
   const cells = cloneCells(board);
-  for (const index of mineIndices) cells[index].mine = true;
-  const next: Board = { ...board, cells, minesPlaced: true };
+  // Dedupe: the board's mineCount must match the mines that actually exist.
+  const unique = new Set(mineIndices);
+  for (const index of unique) cells[index].mine = true;
+  const next: Board = {
+    ...board,
+    cells,
+    mineCount: unique.size,
+    minesPlaced: true,
+  };
   for (let i = 0; i < cells.length; i++) {
     cells[i].adjacent = neighbors(next, i).filter((n) => cells[n].mine).length;
   }
@@ -61,6 +73,7 @@ export function placeMinesAt(board: Board, mineIndices: number[]): Board {
 export function placeMines(
   board: Board,
   safeIndex: number,
+  /** Random source; must return values in [0, 1). */
   rng: () => number = Math.random,
 ): Board {
   const forbidden = new Set<number>([safeIndex, ...neighbors(board, safeIndex)]);
