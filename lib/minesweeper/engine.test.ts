@@ -4,6 +4,8 @@ import {
   neighbors,
   placeMines,
   placeMinesAt,
+  reveal,
+  toggleFlag,
 } from './engine';
 import { mulberry32 } from './test-utils';
 import type { SectionSpec } from './types';
@@ -103,5 +105,70 @@ describe('placeMines', () => {
     expect(base.cells.every((c) => !c.mine)).toBe(true);
     expect(base.minesPlaced).toBe(false);
     expect(base.cells[0]).not.toBe(out.cells[0]);
+  });
+});
+
+describe('reveal', () => {
+  test('first reveal places mines and never loses', () => {
+    const rng = mulberry32(7);
+    let board = createBoard({ rows: 8, cols: 12, mineCount: 15 });
+    board = reveal(board, 40, rng);
+    expect(board.minesPlaced).toBe(true);
+    expect(board.status).toBe('playing');
+    expect(board.cells[40].state).toBe('revealed');
+    expect(board.cells[40].mine).toBe(false);
+  });
+
+  test('flood fill reveals the whole board when there are no mines', () => {
+    let board = createBoard({ rows: 4, cols: 4, mineCount: 0 });
+    board = placeMinesAt(board, []);
+    board = reveal(board, 0);
+    expect(board.cells.every((c) => c.state === 'revealed')).toBe(true);
+    expect(board.status).toBe('won');
+  });
+
+  test('flood fill stops at numbered cells', () => {
+    // 4x4 with a mine in the far corner (15): revealing 0 floods everything
+    // except the mine — the three cells around it become numbered borders.
+    let board = createBoard({ rows: 4, cols: 4, mineCount: 1 });
+    board = placeMinesAt(board, [15]);
+    board = reveal(board, 0);
+    expect(board.cells[15].state).toBe('hidden');
+    expect(board.cells[10].adjacent).toBe(1);
+    expect(board.cells[10].state).toBe('revealed');
+    expect(board.status).toBe('won'); // all non-mine cells revealed
+  });
+
+  test('revealing a mine loses', () => {
+    let board = createBoard({ rows: 3, cols: 3, mineCount: 1 });
+    board = placeMinesAt(board, [4]);
+    board = reveal(board, 4);
+    expect(board.status).toBe('lost');
+    expect(board.cells[4].state).toBe('revealed');
+  });
+
+  test('reveal is a no-op on flagged cells and after game over', () => {
+    let board = createBoard({ rows: 3, cols: 3, mineCount: 1 });
+    board = placeMinesAt(board, [4]);
+    board = toggleFlag(board, 0);
+    expect(reveal(board, 0)).toBe(board);
+    const lost = reveal(board, 4);
+    expect(reveal(lost, 1)).toBe(lost);
+  });
+});
+
+describe('reveal with pre-revealed sections', () => {
+  test('a pre-revealed section does not wall off the flood fill', () => {
+    const sections: SectionSpec[] = [
+      { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [5, 6] },
+    ];
+    let board = createBoard({
+      rows: 4, cols: 4, mineCount: 0,
+      sections, revealedSectionIds: ['music'],
+    });
+    board = placeMinesAt(board, []);
+    board = reveal(board, 15); // far corner, other side of the section wall
+    expect(board.cells.every((c) => c.state === 'revealed')).toBe(true);
+    expect(board.status).toBe('won');
   });
 });

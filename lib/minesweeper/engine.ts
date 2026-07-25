@@ -90,3 +90,50 @@ export function placeMines(
   }
   return placeMinesAt(board, candidates.slice(0, board.mineCount));
 }
+
+function checkWin(board: Board): Board {
+  const won = board.cells.every((cell) => cell.mine || cell.state === 'revealed');
+  return won ? { ...board, status: 'won' } : board;
+}
+
+export function reveal(
+  board: Board,
+  index: number,
+  rng: () => number = Math.random,
+): Board {
+  if (board.status !== 'playing') return board;
+  const target = board.cells[index];
+  if (target.state === 'flagged' || target.state === 'revealed') return board;
+
+  let next = board.minesPlaced ? board : placeMines(board, index, rng);
+  const cells = cloneCells(next);
+  next = { ...next, cells };
+
+  if (cells[index].mine) {
+    cells[index].state = 'revealed';
+    return { ...next, status: 'lost' };
+  }
+
+  const queue = [index];
+  while (queue.length > 0) {
+    const current = queue.pop()!;
+    const cell = cells[current];
+    if (cell.state !== 'hidden') continue;
+    cell.state = 'revealed';
+    if (cell.adjacent === 0) {
+      for (const n of neighbors(next, current)) {
+        if (cells[n].state === 'hidden' && !cells[n].mine) queue.push(n);
+      }
+    }
+  }
+  return checkWin(next);
+}
+
+export function toggleFlag(board: Board, index: number): Board {
+  if (board.status !== 'playing') return board;
+  const cell = board.cells[index];
+  if (cell.state === 'revealed') return board;
+  const cells = cloneCells(board);
+  cells[index].state = cell.state === 'flagged' ? 'hidden' : 'flagged';
+  return { ...board, cells };
+}
