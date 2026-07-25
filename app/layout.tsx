@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Noto_Serif_SC } from 'next/font/google';
+import Spine from '@/components/spine';
+import SiteFooter from '@/components/site-footer';
 import './globals.css';
 
 const notoSerifSC = Noto_Serif_SC({
@@ -23,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={notoSerifSC.variable}>
       <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
+        <Spine />
         <main className="flex-1 md:pl-[72px]">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
