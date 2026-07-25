@@ -23,7 +23,21 @@ const NUMBER_CLASSES: Record<number, string> = {
   8: 'text-n8',
 };
 
+/** Touch hold that counts as a flag gesture. */
+const LONG_PRESS_MS = 450;
+/**
+ * How long after a long-press we ignore pointer events on any cell. Mobile
+ * browsers follow a hold with a synthesized click *and* a contextmenu, and may
+ * also drop the click entirely — so this is a self-expiring window rather than
+ * a latch that a missing click could strand.
+ */
+const SUPPRESS_MS = 500;
+/** How long the shake and ✕ stay up before the board resets after a loss. */
+const RESET_DELAY_MS = 900;
+
 export interface GameBoardProps {
+  // Board geometry is read once, when the initial board is built. Changing
+  // rows/cols/mineCount/sections later requires remounting via a `key`.
   rows?: number;
   cols?: number;
   mineCount?: number;
@@ -62,7 +76,7 @@ function cellContent(cell: Cell) {
 
 function cellClass(cell: Cell): string {
   const base =
-    'flex aspect-square items-center justify-center rounded-[2px] border font-mono-game text-[11px] font-bold outline-none focus-visible:ring-1 focus-visible:ring-vermilion';
+    'flex aspect-square select-none touch-manipulation items-center justify-center rounded-[2px] border font-mono-game text-[11px] font-bold outline-none [-webkit-touch-callout:none] focus-visible:ring-1 focus-visible:ring-vermilion';
   if (cell.state === 'revealed' && cell.section) {
     return `${base} border-vermilion/60 bg-surface text-vermilion shadow-[0_0_8px_rgba(194,59,34,0.35)] cursor-pointer`;
   }
@@ -70,6 +84,36 @@ function cellClass(cell: Cell): string {
     return `${base} border-hairline bg-surface`;
   }
   return `${base} border-hairline-2 bg-tile transition-transform motion-safe:hover:scale-[0.96]`;
+}
+
+/**
+ * Leaf clock. It owns its own tick so the 100ms update re-renders one span
+ * instead of every cell on the board. Mount it with a fresh `key` to restart
+ * from zero.
+ */
+function Timer({ running, won }: { running: boolean; won: boolean }) {
+  const [ms, setMs] = useState(0);
+
+  useEffect(() => {
+    if (!running) return;
+    const start = Date.now();
+    const id = setInterval(() => setMs(Date.now() - start), 100);
+    return () => {
+      clearInterval(id);
+      // Sample once more when the clock stops, so a win freezes on the real
+      // time instead of on whatever the last tick happened to catch.
+      setMs(Date.now() - start);
+    };
+  }, [running]);
+
+  return (
+    <span
+      aria-label="timer"
+      className={won ? 'text-vermilion-text' : 'text-paper'}
+    >
+      {(ms / 1000).toFixed(2).padStart(6, '0')}
+    </span>
+  );
 }
 
 export default function GameBoard({
@@ -90,14 +134,19 @@ export default function GameBoard({
 
   const [board, setBoard] = useState<Board>(() => makeBoard([]));
   const [started, setStarted] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
   const [shaking, setShaking] = useState(false);
   const [flagMode, setFlagMode] = useState(false);
   const [focusIdx, setFocusIdx] = useState(0);
-  const startRef = useRef<number>(0);
+  /** Bumped on reset to remount the Timer back at zero. */
+  const [runId, setRunId] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
-  const longPress = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const suppressClick = useRef(false);
+  const longPress = useRef<{
+    id: ReturnType<typeof setTimeout>;
+    index: number;
+  } | null>(null);
+  /** Timestamp until which pointer events are treated as long-press fallout. */
+  const suppressUntil = useRef(0);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // sessionStorage is client-only: restore found sections after mount. Reading
   // it in the state initializer instead would desync the server HTML from the
@@ -109,19 +158,13 @@ export default function GameBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Date.now() is impure, so the clock start is recorded here rather than in
-  // the click handler that flips `started`.
-  useEffect(() => {
-    if (started) startRef.current = Date.now();
-  }, [started]);
-
-  useEffect(() => {
-    if (!started || board.status !== 'playing') return;
-    const id = setInterval(() => {
-      setElapsed((Date.now() - startRef.current) / 1000);
-    }, 100);
-    return () => clearInterval(id);
-  }, [started, board.status]);
+  useEffect(
+    () => () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+      if (longPress.current) clearTimeout(longPress.current.id);
+    },
+    [],
+  );
 
   /** Fully open any section that was touched, and persist the found list. */
   function settleSections(next: Board): Board {
@@ -135,16 +178,21 @@ export default function GameBoard({
       }
     }
     if (persistKey) {
-      window.sessionStorage.setItem(persistKey, JSON.stringify(found));
+      try {
+        window.sessionStorage.setItem(persistKey, JSON.stringify(found));
+      } catch {
+        // Safari private mode throws on write; the board plays on regardless.
+      }
     }
     return { ...next, cells };
   }
 
   function reset() {
+    resetTimer.current = null;
     setBoard(makeBoard(loadFound(persistKey)));
     setStarted(false);
-    setElapsed(0);
     setShaking(false);
+    setRunId((n) => n + 1);
   }
 
   function commit(next: Board) {
@@ -155,15 +203,11 @@ export default function GameBoard({
     setBoard(settled);
     if (settled.status === 'lost') {
       setShaking(true);
-      setTimeout(reset, 900);
+      resetTimer.current = setTimeout(reset, RESET_DELAY_MS);
     }
   }
 
   function handleReveal(index: number) {
-    if (suppressClick.current) {
-      suppressClick.current = false;
-      return;
-    }
     const cell = board.cells[index];
     if (cell.state === 'revealed' && cell.section) {
       const section = sections.find((s) => s.id === cell.section);
@@ -186,22 +230,35 @@ export default function GameBoard({
     commit(chord(board, index));
   }
 
+  function cancelLongPress(index: number) {
+    if (longPress.current?.index === index) {
+      clearTimeout(longPress.current.id);
+      longPress.current = null;
+    }
+  }
+
   function onKeyDown(e: React.KeyboardEvent) {
-    const moves: Record<string, number> = {
-      ArrowLeft: -1,
-      ArrowRight: 1,
-      ArrowUp: -cols,
-      ArrowDown: cols,
-    };
-    if (e.key in moves) {
+    const dr = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+    const dc = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+    if (dr !== 0 || dc !== 0) {
       e.preventDefault();
-      setFocusIdx((i) =>
-        Math.min(board.cells.length - 1, Math.max(0, i + moves[e.key])),
-      );
+      // Clamp each axis on its own: a flat index clamp would wrap rows
+      // horizontally and jump to a corner vertically.
+      setFocusIdx((i) => {
+        const r = Math.min(rows - 1, Math.max(0, Math.floor(i / cols) + dr));
+        const c = Math.min(cols - 1, Math.max(0, (i % cols) + dc));
+        return r * cols + c;
+      });
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleReveal(focusIdx);
-    } else if (e.key.toLowerCase() === 'f') {
+    } else if (
+      e.key.toLowerCase() === 'f' &&
+      !e.metaKey &&
+      !e.ctrlKey &&
+      !e.altKey
+    ) {
+      // Bare "f" flags; ⌘F / Ctrl+F stay with the browser's find.
       e.preventDefault();
       handleFlag(focusIdx);
     }
@@ -217,6 +274,12 @@ export default function GameBoard({
   }, [focusIdx]);
 
   const remaining = Math.max(0, minesRemaining(board));
+  const announcement =
+    board.status === 'lost'
+      ? 'mine hit — board reset'
+      : board.status === 'won'
+        ? 'board complete'
+        : '';
 
   return (
     <div className={`w-full ${className}`}>
@@ -228,17 +291,30 @@ export default function GameBoard({
           <span className="font-serif-sc tracking-[0.3em] text-paper">
             {title}
           </span>
-          <span aria-label="timer" className="text-paper">
-            {board.status === 'won' ? elapsed.toFixed(2) : elapsed.toFixed(2).padStart(6, '0')}
-          </span>
+          <Timer
+            key={runId}
+            running={started && board.status === 'playing'}
+            won={board.status === 'won'}
+          />
         </div>
       )}
+      <p role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <div
         ref={gridRef}
-        role="grid"
+        // Not role="grid": that needs row/gridcell wrappers, which would have
+        // to use display:contents to keep the CSS grid intact — and those are
+        // unreliably exposed to assistive tech. A labelled group of buttons
+        // that each announce their coordinates is valid and much cheaper.
+        role="group"
         aria-label="Minesweeper board"
         onKeyDown={onKeyDown}
-        className={`mt-3 grid gap-[2px] ${shaking ? 'motion-safe:animate-board-shake' : ''}`}
+        className={`mt-3 grid gap-[2px] border ${
+          shaking
+            ? 'border-vermilion motion-safe:animate-board-shake'
+            : 'border-transparent'
+        }`}
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       >
         {board.cells.map((cell, i) => {
@@ -253,24 +329,38 @@ export default function GameBoard({
               tabIndex={i === focusIdx ? 0 : -1}
               aria-label={`cell ${row},${col}`}
               className={cellClass(cell)}
-              onClick={() => handleReveal(i)}
+              onClick={() => {
+                // Swallow the click a long-press synthesizes. The window
+                // expires on its own, so a dropped click cannot strand it.
+                if (Date.now() < suppressUntil.current) return;
+                handleReveal(i);
+              }}
               onContextMenu={(e) => {
                 e.preventDefault();
+                // Mobile fires contextmenu partway through the same hold we
+                // already flagged on; a second toggle would undo that flag.
+                if (Date.now() < suppressUntil.current) return;
                 handleFlag(i);
               }}
               onDoubleClick={() => handleChord(i)}
               onTouchStart={() => {
-                longPress.current = setTimeout(() => {
-                  suppressClick.current = true;
+                if (longPress.current) clearTimeout(longPress.current.id);
+                suppressUntil.current = 0;
+                const id = setTimeout(() => {
+                  longPress.current = null;
+                  // A revealed section tile navigates on tap, so a slow tap
+                  // must stay a tap: no flag, no suppression. Reading `board`
+                  // from this closure is safe because a revealed cell can
+                  // never go back to hidden.
+                  if (board.cells[i].state === 'revealed') return;
+                  suppressUntil.current = Date.now() + SUPPRESS_MS;
                   handleFlag(i);
-                }, 450);
+                }, LONG_PRESS_MS);
+                longPress.current = { id, index: i };
               }}
-              onTouchEnd={() => {
-                if (longPress.current) clearTimeout(longPress.current);
-              }}
-              onTouchMove={() => {
-                if (longPress.current) clearTimeout(longPress.current);
-              }}
+              onTouchEnd={() => cancelLongPress(i)}
+              onTouchCancel={() => cancelLongPress(i)}
+              onTouchMove={() => cancelLongPress(i)}
             >
               {cellContent(cell)}
             </button>
@@ -280,6 +370,7 @@ export default function GameBoard({
       <div className="mt-2 flex justify-end md:hidden">
         <button
           type="button"
+          aria-pressed={flagMode}
           onClick={() => setFlagMode((m) => !m)}
           className={`font-mono-game text-[10px] ${
             flagMode ? 'text-vermilion' : 'text-faint'
