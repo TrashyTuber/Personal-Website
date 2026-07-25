@@ -139,6 +139,38 @@ describe('GameBoard touch', () => {
     expect(cell(1, 1)).toHaveAttribute('data-state', 'flagged');
   });
 
+  test('a long hold does not let the trailing click reveal the cell', () => {
+    vi.useFakeTimers();
+    render(<GameBoard rows={3} cols={3} mineCount={0} showStatus={false} />);
+    fireEvent.contextMenu(cell(0, 0));
+    expect(cell(0, 0)).toHaveAttribute('data-state', 'flagged');
+
+    // Un-flag by holding, then keep holding well past the suppression window.
+    fireEvent.touchStart(cell(0, 0));
+    tick(450);
+    expect(cell(0, 0)).toHaveAttribute('data-state', 'hidden');
+    tick(650);
+    fireEvent.touchEnd(cell(0, 0));
+
+    // The synthesized click arrives at release, so suppression must be
+    // anchored there — otherwise this un-flag turns into a reveal.
+    fireEvent.click(cell(0, 0));
+    expect(cell(0, 0)).toHaveAttribute('data-state', 'hidden');
+  });
+
+  test('a contextmenu before the hold elapses cancels the pending long-press', () => {
+    vi.useFakeTimers();
+    render(<GameBoard rows={3} cols={3} mineCount={0} showStatus={false} />);
+
+    fireEvent.touchStart(cell(1, 1));
+    tick(400);
+    fireEvent.contextMenu(cell(1, 1)); // platform hold menu, before our timer
+    expect(cell(1, 1)).toHaveAttribute('data-state', 'flagged');
+
+    tick(100); // our timer would otherwise fire and toggle the flag back off
+    expect(cell(1, 1)).toHaveAttribute('data-state', 'flagged');
+  });
+
   test('a slow tap on a revealed section tile still navigates', () => {
     vi.useFakeTimers();
     render(

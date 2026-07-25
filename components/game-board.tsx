@@ -146,6 +146,8 @@ export default function GameBoard({
   } | null>(null);
   /** Timestamp until which pointer events are treated as long-press fallout. */
   const suppressUntil = useRef(0);
+  /** Set when a hold has flagged, cleared when the finger lifts. */
+  const longPressFired = useRef(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // sessionStorage is client-only: restore found sections after mount. Reading
@@ -234,6 +236,20 @@ export default function GameBoard({
     if (longPress.current?.index === index) {
       clearTimeout(longPress.current.id);
       longPress.current = null;
+    }
+  }
+
+  /**
+   * Shared by touchend and touchcancel. The click a hold synthesizes lands at
+   * release, so the suppression window has to restart there — anchoring it to
+   * when the hold fired lets any hold longer than SUPPRESS_MS through, and the
+   * trailing click would then reveal the cell the user was un-flagging.
+   */
+  function endTouch(index: number, at: number) {
+    cancelLongPress(index);
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      suppressUntil.current = at + SUPPRESS_MS;
     }
   }
 
@@ -340,26 +356,36 @@ export default function GameBoard({
                 // Mobile fires contextmenu partway through the same hold we
                 // already flagged on; a second toggle would undo that flag.
                 if (Date.now() < suppressUntil.current) return;
+                // If the platform menu beat our timer, this contextmenu *is*
+                // the flag gesture — drop the pending hold so it cannot toggle
+                // the flag straight back off. No suppression window here: on
+                // desktop a right-click then left-click is legitimate.
+                cancelLongPress(i);
                 handleFlag(i);
               }}
               onDoubleClick={() => handleChord(i)}
               onTouchStart={() => {
                 if (longPress.current) clearTimeout(longPress.current.id);
                 suppressUntil.current = 0;
+                longPressFired.current = false;
                 const id = setTimeout(() => {
                   longPress.current = null;
                   // A revealed section tile navigates on tap, so a slow tap
                   // must stay a tap: no flag, no suppression. Reading `board`
-                  // from this closure is safe because a revealed cell can
-                  // never go back to hidden.
+                  // from this closure is safe because within one board
+                  // generation a revealed cell never goes back to hidden
+                  // (reset() builds a new board rather than mutating this one).
                   if (board.cells[i].state === 'revealed') return;
+                  longPressFired.current = true;
+                  // Covers a contextmenu fired mid-hold; endTouch re-anchors
+                  // this window to the release that follows.
                   suppressUntil.current = Date.now() + SUPPRESS_MS;
                   handleFlag(i);
                 }, LONG_PRESS_MS);
                 longPress.current = { id, index: i };
               }}
-              onTouchEnd={() => cancelLongPress(i)}
-              onTouchCancel={() => cancelLongPress(i)}
+              onTouchEnd={() => endTouch(i, Date.now())}
+              onTouchCancel={() => endTouch(i, Date.now())}
               onTouchMove={() => cancelLongPress(i)}
             >
               {cellContent(cell)}
