@@ -100,6 +100,8 @@ git commit -m "chore: scaffold Next.js app with Vitest tooling"
   --color-muted: #8a8a88;
   --color-faint: #7c7c7c;
   --color-vermilion: #c23b22;
+  /* vermilion lightened to clear 4.5:1 for small text; fills/glyphs keep --color-vermilion */
+  --color-vermilion-text: #d9573c;
   --color-seal: #f5f0e6;
   --color-n1: #4a9eff;
   --color-n2: #8fd694;
@@ -685,6 +687,8 @@ git commit -m "feat: minesweeper engine — chording and mine counter"
 - Modify: `app/layout.tsx`
 
 **Accessibility note:** wrap hanzi text (the wordmark 贾一茗, nav labels, the seal 贾) in `lang="zh-Hans"` attributes so screen readers use a Chinese voice and browsers pick Simplified-Chinese glyph forms.
+
+**Post-review deltas (shipped in `components/spine.tsx` / `site-footer.tsx`, commit ac2606e — the repo files are authoritative over the blocks below):** nav links carry `aria-label={item.en}` (bilingual affordance) and `aria-current="page"` when active; active color is `text-vermilion-text` (AA-safe); vertical spine text adds `[text-orientation:upright]` (upright "CV"); shared `FOCUS_RING` (`focus-visible:ring-vermilion`); mobile links `py-2 -my-2`, nav `gap-3`; `lang="zh-Hans"` sits on inner spans around hanzi, never on elements whose accessible name is Latin; `/cv.pdf` is a plain `<a target="_blank" rel="noopener">`, not a `next/link`; desktop aside has `bg-ink`; footer external links `target="_blank" rel="noopener"`; nav items rendered via a shared `NavItems` component to keep both breakpoint variants in sync.
 
 - [ ] **Step 1: Create `components/spine.tsx`**
 
