@@ -918,6 +918,7 @@ Expected: FAIL — `game-board.tsx` does not exist.
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  checkWin,
   chord,
   createBoard,
   minesRemaining,
@@ -1053,7 +1054,10 @@ export default function GameBoard({
   }
 
   function commit(next: Board) {
-    const settled = settleSections(next);
+    if (next === board) return; // no-op action: skip re-render + storage write
+    // settleSections force-reveals section cells outside the engine, so the
+    // win check must re-run afterward (checkWin no-ops on non-playing boards).
+    const settled = checkWin(settleSections(next));
     setBoard(settled);
     if (settled.status === 'lost') {
       setShaking(true);
@@ -1227,8 +1231,9 @@ const COLS = 12;
 const at = (row: number, col: number) => row * COLS + col;
 
 // LAYOUT CONSTRAINT: section cells must never span a full row or column —
-// pre-revealed (returning-visitor) sections act as flood-fill walls, and a
-// spanning wall would strand the region behind it (see engine reveal semantics).
+// revealed section cells (whether restored from sessionStorage or found this
+// session) act as flood-fill walls, and a spanning wall would strand the
+// region behind it (see engine reveal semantics).
 const HOME_SECTIONS: SectionSpec[] = [
   { id: 'projects', href: '/projects', glyphs: ['项', '目'], cells: [at(1, 7), at(1, 8)] },
   { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [at(3, 4), at(3, 5)] },
