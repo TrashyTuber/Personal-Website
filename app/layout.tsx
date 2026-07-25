@@ -13,10 +13,20 @@ const notoSerifSC = Noto_Serif_SC({
   fallback: ['Georgia', 'serif'],
 });
 
+const description =
+  'Yiming Jia — engineer and composer. CS at Northwestern, Composition at Bienen. Projects, music, and minesweeper.';
+
 export const metadata: Metadata = {
+  // TODO: replace with the real domain at deploy
+  metadataBase: new URL('https://personal-website.vercel.app'),
   title: 'Yiming Jia — 贾一茗',
-  description:
-    'Yiming Jia — engineer and composer. CS at Northwestern, Composition at Bienen. Projects, music, and minesweeper.',
+  description,
+  openGraph: {
+    title: 'Yiming Jia — 贾一茗',
+    description,
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
