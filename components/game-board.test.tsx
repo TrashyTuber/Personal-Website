@@ -276,6 +276,46 @@ describe('GameBoard status', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/board complete/);
   });
 
+  test('onStatusChange reports the win', () => {
+    const onStatusChange = vi.fn();
+    render(
+      <GameBoard
+        rows={3}
+        cols={3}
+        mineCount={0}
+        showStatus={false}
+        onStatusChange={onStatusChange}
+      />,
+    );
+    fireEvent.click(cell(0, 0)); // 0 mines: a full reveal wins immediately
+    expect(onStatusChange).toHaveBeenCalledWith('won');
+  });
+
+  test('onStatusChange reports the loss and the reset back to playing', () => {
+    vi.useFakeTimers();
+    const seeded = seedBoard();
+    const mineIdx = seeded.cells.findIndex(
+      (c) => c.mine && c.state === 'hidden',
+    );
+    const onStatusChange = vi.fn();
+    render(
+      <GameBoard
+        rows={8}
+        cols={8}
+        mineCount={10}
+        showStatus={false}
+        onStatusChange={onStatusChange}
+      />,
+    );
+
+    fireEvent.click(cell(0, 0));
+    fireEvent.click(cell(Math.floor(mineIdx / 8), mineIdx % 8));
+    expect(onStatusChange).toHaveBeenLastCalledWith('lost');
+
+    tick(900);
+    expect(onStatusChange).toHaveBeenLastCalledWith('playing');
+  });
+
   test('the flag-mode toggle exposes its pressed state', () => {
     render(<GameBoard rows={3} cols={3} mineCount={0} showStatus={false} />);
     const toggle = screen.getByRole('button', { name: /flag mode/i });

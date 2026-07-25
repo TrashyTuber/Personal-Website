@@ -10,7 +10,12 @@ import {
   reveal,
   toggleFlag,
 } from '@/lib/minesweeper/engine';
-import type { Board, Cell, SectionSpec } from '@/lib/minesweeper/types';
+import type {
+  Board,
+  Cell,
+  GameStatus,
+  SectionSpec,
+} from '@/lib/minesweeper/types';
 
 const NUMBER_CLASSES: Record<number, string> = {
   1: 'text-n1',
@@ -47,6 +52,13 @@ export interface GameBoardProps {
   showStatus?: boolean;
   title?: string;
   className?: string;
+  /**
+   * Notified whenever the run's status settles — 'won'/'lost' from a move, and
+   * 'playing' again after the post-loss reset. The board's own win/loss signal
+   * is an sr-only aria-live line and a frozen timer; this lets a page add
+   * *visible* feedback without owning the game state.
+   */
+  onStatusChange?: (status: GameStatus) => void;
 }
 
 function loadFound(persistKey?: string): string[] {
@@ -127,6 +139,7 @@ export default function GameBoard({
   // Max width lives in this prop (not hardcoded) so callers can override it
   // without producing two conflicting Tailwind max-w-* classes.
   className = 'max-w-[420px]',
+  onStatusChange,
 }: GameBoardProps) {
   const router = useRouter();
   const makeBoard = (found: string[]): Board =>
@@ -195,6 +208,7 @@ export default function GameBoard({
     setStarted(false);
     setShaking(false);
     setRunId((n) => n + 1);
+    onStatusChange?.('playing');
   }
 
   function commit(next: Board) {
@@ -203,6 +217,10 @@ export default function GameBoard({
     // win check must re-run afterward (checkWin no-ops on non-playing boards).
     const settled = checkWin(settleSections(next));
     setBoard(settled);
+    // Fired unconditionally rather than only on a transition: a listener that
+    // mirrors this into state is idempotent, and 'won' has to get through here
+    // because nothing else runs after the winning move.
+    onStatusChange?.(settled.status);
     if (settled.status === 'lost') {
       setShaking(true);
       resetTimer.current = setTimeout(reset, RESET_DELAY_MS);
