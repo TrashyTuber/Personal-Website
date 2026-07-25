@@ -34,7 +34,7 @@ export default function MinesweeperPage() {
             <span className="hidden whitespace-nowrap font-mono-game text-xs text-faint sm:inline">
               {row.grid}
             </span>
-            <span className="font-mono-game text-lg text-vermilion">
+            <span className="font-mono-game text-lg text-vermilion-text">
               {row.time}
             </span>
           </div>
@@ -57,6 +57,7 @@ export default function MinesweeperPage() {
           cols={16}
           mineCount={40}
           title="扫雷"
+          titleLang="zh-Hans"
           className="max-w-[560px]"
         />
       </div>
@@ -70,6 +71,7 @@ export default function MinesweeperPage() {
           cols={10}
           mineCount={12}
           title="扫雷"
+          titleLang="zh-Hans"
           className="max-w-[420px]"
         />
       </div>

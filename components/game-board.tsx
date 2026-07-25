@@ -51,6 +51,11 @@ export interface GameBoardProps {
   persistKey?: string;
   showStatus?: boolean;
   title?: string;
+  /**
+   * BCP-47 tag for `title`. The default title is Latin, so this cannot be
+   * hardcoded — callers passing hanzi (e.g. 扫雷) set `titleLang="zh-Hans"`.
+   */
+  titleLang?: string;
   className?: string;
   /**
    * Notified whenever the run's status settles — 'won'/'lost' from a move, and
@@ -78,7 +83,11 @@ function cellContent(cell: Cell) {
   if (cell.state !== 'revealed') return null;
   if (cell.mine) return <span className="text-vermilion">✕</span>;
   if (cell.glyph) {
-    return <span className="font-serif-sc text-[13px] font-normal">{cell.glyph}</span>;
+    return (
+      <span lang="zh-Hans" className="font-serif-sc text-[13px] font-normal">
+        {cell.glyph}
+      </span>
+    );
   }
   if (cell.adjacent > 0) {
     return <span className={NUMBER_CLASSES[cell.adjacent]}>{cell.adjacent}</span>;
@@ -136,6 +145,7 @@ export default function GameBoard({
   persistKey,
   showStatus = true,
   title = 'YIMING JIA',
+  titleLang,
   // Max width lives in this prop (not hardcoded) so callers can override it
   // without producing two conflicting Tailwind max-w-* classes.
   className = 'max-w-[420px]',
@@ -322,7 +332,10 @@ export default function GameBoard({
           <span aria-label="mines remaining">
             ⚑ {String(remaining).padStart(3, '0')}
           </span>
-          <span className="font-serif-sc tracking-[0.3em] text-paper">
+          <span
+            lang={titleLang}
+            className="font-serif-sc tracking-[0.3em] text-paper"
+          >
             {title}
           </span>
           <Timer

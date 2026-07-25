@@ -46,10 +46,12 @@ export default async function ProjectPage({
           {paragraph}
         </p>
       ))}
-      <p className="mt-8 font-mono-game text-xs text-faint">
-        {project.tech.join(' · ')}
-      </p>
-      {project.links && (
+      {project.tech.length ? (
+        <p className="mt-8 font-mono-game text-xs text-faint">
+          {project.tech.join(' · ')}
+        </p>
+      ) : null}
+      {project.links?.length ? (
         <div className="mt-6 flex flex-wrap gap-5">
           {project.links.map((link) => (
             <a
@@ -63,7 +65,7 @@ export default async function ProjectPage({
             </a>
           ))}
         </div>
-      )}
+      ) : null}
     </article>
   );
 }

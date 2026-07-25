@@ -35,7 +35,10 @@ export default function LatticeFrame({
         {project.blurb}
       </p>
       <p className="mt-4 font-mono-game text-[10px] text-faint">
-        {project.tech.join(' · ')} — {project.year}
+        {/* An empty tech list would otherwise render a bare " — 2024". */}
+        {project.tech.length
+          ? `${project.tech.join(' · ')} — ${project.year}`
+          : project.year}
       </p>
     </Link>
   );

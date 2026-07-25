@@ -16,7 +16,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const piece = pieces.find((p) => p.slug === slug);
-  return { title: piece ? `${piece.title} — Yiming Jia` : 'Music' };
+  // Mirrors the page's own guard: a slug that exists but has no detail page
+  // 404s, so it must not advertise a real title.
+  return {
+    title: piece && hasDetail(piece) ? `${piece.title} — Yiming Jia` : 'Music',
+  };
 }
 
 export default async function PiecePage({
