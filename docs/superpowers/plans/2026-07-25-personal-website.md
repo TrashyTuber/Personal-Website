@@ -1852,6 +1852,10 @@ git commit -m "feat: about page in ink-scroll layout"
 
 ### Task 15: Minesweeper page
 
+**Carried from the Task 7 board review:**
+- Add win feedback on this page (the board itself only freezes the timer on win) — e.g. a status line under the board driven by the same aria-live text, or a vermilion glow on the grid.
+- Mobile tap targets: 16 cols in `max-w-[560px]` ≈ 20px cells at 375px width — too small for touch. Render a smaller grid below `md` (e.g. 10×10, 12 mines) using a separate `<GameBoard key="mobile" .../>` in a `md:hidden` wrapper (geometry props are mount-only; the key/remount pattern is required), with the 16×16 in a `hidden md:flex` wrapper.
+
 **Files:**
 - Create: `app/minesweeper/page.tsx`
 
@@ -1930,6 +1934,7 @@ git commit -m "feat: minesweeper page — personal bests and playable board"
 - Add `metadataBase` (Vercel URL) and basic `openGraph` metadata to `app/layout.tsx`; add `app/apple-icon.png` (rasterized seal).
 - Review `npm audit` output (12 highs inherited from create-next-app tree); fix only what doesn't break.
 - `app/icon.svg`: outline the 贾 glyph to a `<path>` (text in SVG favicons renders as tofu in CJK-less rasterizers like link unfurlers).
+- Follow-up (post-launch acceptable): full board screen-reader story — per-cell state in aria-labels (flagged/revealed/count) beyond the aria-live win/loss announcements added in Task 7.
 - Optional post-launch perf: hand-subset the site's fixed ~40-60 hanzi into a self-hosted woff2 via `next/font/local` with preload (replaces the runtime Google CJK slices, ~748 KB unpreloaded today).
 
 - [ ] **Step 1: Full test suite and build**
