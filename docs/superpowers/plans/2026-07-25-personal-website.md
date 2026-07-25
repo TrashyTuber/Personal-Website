@@ -577,32 +577,34 @@ git commit -m "feat: minesweeper engine — reveal, flood fill, flags, win/loss"
 
 ```ts
 describe('chord', () => {
+  // 4x4 with mines in the top corners (0, 3). reveal(12) floods rows 1-3,
+  // leaving row 0 hidden: cells 1 and 2 are safe "1"s, 0 and 3 are mines.
+  // (A 3x3/1-mine fixture is degenerate: the setup reveal insta-wins and
+  // chord never runs — do not shrink this fixture.)
+  const chordBase = () => {
+    let b = createBoard({ rows: 4, cols: 4, mineCount: 2 });
+    b = placeMinesAt(b, [0, 3]);
+    return reveal(b, 12); // status 'playing'; cells 4-15 revealed, 0-3 hidden
+  };
+
   test('reveals unflagged neighbors when flags match the number', () => {
-    // 3x3, mine at 0. Cell 4 shows "1". Flag 0, then chord on 4.
-    let board = createBoard({ rows: 3, cols: 3, mineCount: 1 });
-    board = placeMinesAt(board, [0]);
-    board = reveal(board, 8); // flood-reveals everything except around the mine
-    board = toggleFlag(board, 0);
-    board = chord(board, 4);
+    let board = chordBase();
+    board = toggleFlag(board, 0); // correctly flag the mine
+    board = chord(board, 5); // "1" next to the flag
     expect(board.cells[1].state).toBe('revealed');
-    expect(board.cells[3].state).toBe('revealed');
+    expect(board.cells[2].state).toBe('revealed');
     expect(board.status).toBe('won');
   });
 
   test('does nothing when flag count does not match', () => {
-    let board = createBoard({ rows: 3, cols: 3, mineCount: 1 });
-    board = placeMinesAt(board, [0]);
-    board = reveal(board, 8);
-    const before = board;
-    expect(chord(board, 4)).toBe(before);
+    const board = chordBase();
+    expect(chord(board, 5)).toBe(board); // no flags placed
   });
 
   test('loses if a flag was wrong', () => {
-    let board = createBoard({ rows: 3, cols: 3, mineCount: 1 });
-    board = placeMinesAt(board, [0]);
-    board = reveal(board, 8);
-    board = toggleFlag(board, 1); // wrong flag
-    board = chord(board, 4);
+    let board = chordBase();
+    board = toggleFlag(board, 1); // wrong flag on a safe cell
+    board = chord(board, 5); // reveals neighbors incl. the mine at 0
     expect(board.status).toBe('lost');
   });
 });
@@ -658,9 +660,15 @@ export function minesRemaining(board: Board): number {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run lib/minesweeper`
-Expected: PASS (16 tests).
+Expected: PASS (all tests green).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Carried-forward fixes from the Task 4 review (same files)**
+
+- `export` the `checkWin` function (Task 7's settleSections force-reveals section cells outside the engine and must re-run the win check afterward).
+- Rename the test `'a pre-revealed section does not wall off the flood fill'` to `'flood fill routes around a small pre-revealed section'` (the old name claims a guarantee the engine doesn't provide), and add a sibling test pinning the real constraint: a section spanning a full column DOES wall the flood (e.g. 4x4, mine-free, section cells [1,5,9,13] pre-revealed, reveal(0) → cells 2,3,6,7,10,11,14,15 stay... [construct so the far side stays hidden and status stays 'playing']).
+- Note (deliberate, do not change): a chord that would detonate two mines reveals only the first — once status is 'lost', later reveals in the loop no-op.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add lib/minesweeper
@@ -1218,6 +1226,9 @@ import type { SectionSpec } from '@/lib/minesweeper/types';
 const COLS = 12;
 const at = (row: number, col: number) => row * COLS + col;
 
+// LAYOUT CONSTRAINT: section cells must never span a full row or column —
+// pre-revealed (returning-visitor) sections act as flood-fill walls, and a
+// spanning wall would strand the region behind it (see engine reveal semantics).
 const HOME_SECTIONS: SectionSpec[] = [
   { id: 'projects', href: '/projects', glyphs: ['项', '目'], cells: [at(1, 7), at(1, 8)] },
   { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [at(3, 4), at(3, 5)] },
