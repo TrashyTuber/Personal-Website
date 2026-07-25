@@ -10,6 +10,8 @@
   --color-muted: #8a8a88;
   --color-faint: #7c7c7c;
   --color-vermilion: #c23b22;
+  /* vermilion lightened to clear 4.5:1 for small text; fills/glyphs keep --color-vermilion */
+  --color-vermilion-text: #d9573c;
   --color-seal: #f5f0e6;
   --color-n1: #4a9eff;
   --color-n2: #8fd694;

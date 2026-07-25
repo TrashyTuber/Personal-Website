@@ -7,12 +7,16 @@ export default function SiteFooter() {
         </a>
         <a
           href="https://github.com/REPLACE-github-username"
+          target="_blank"
+          rel="noopener"
           className="hover:text-paper"
         >
           github
         </a>
         <a
           href="https://www.linkedin.com/in/REPLACE-linkedin-slug"
+          target="_blank"
+          rel="noopener"
           className="hover:text-paper"
         >
           linkedin
