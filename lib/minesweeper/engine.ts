@@ -92,6 +92,7 @@ export function placeMines(
 }
 
 export function checkWin(board: Board): Board {
+  if (board.status !== 'playing') return board;
   const won = board.cells.every((cell) => cell.mine || cell.state === 'revealed');
   return won ? { ...board, status: 'won' } : board;
 }

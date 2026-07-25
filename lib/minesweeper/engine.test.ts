@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  checkWin,
   chord,
   createBoard,
   minesRemaining,
@@ -234,8 +235,36 @@ describe('chord', () => {
   test('loses if a flag was wrong', () => {
     let board = chordBase();
     board = toggleFlag(board, 1); // wrong flag on a safe cell
-    board = chord(board, 5); // reveals neighbors incl. the mine at 0
+    // cell 0 (a mine) is the first hidden neighbor — detonates before cell 2
+    // is reached
+    board = chord(board, 5);
     expect(board.status).toBe('lost');
+  });
+
+  test('is a no-op on flagged, hidden, and zero-adjacent targets', () => {
+    let board = chordBase();
+    board = toggleFlag(board, 1);
+    expect(chord(board, 1)).toBe(board); // target is flagged, not revealed
+    expect(chord(board, 2)).toBe(board); // target is still hidden
+    expect(chord(board, 12)).toBe(board); // revealed, but adjacent === 0
+  });
+});
+
+describe('checkWin', () => {
+  test('never resurrects a lost board', () => {
+    // Task 7's settleSections force-reveals section cells outside the engine
+    // and re-runs checkWin. A detonated board must stay lost even once every
+    // non-mine cell has ended up revealed.
+    let board = createBoard({ rows: 3, cols: 3, mineCount: 1 });
+    board = placeMinesAt(board, [4]);
+    board = reveal(board, 4);
+    expect(board.status).toBe('lost');
+    const settled = {
+      ...board,
+      cells: board.cells.map((c) => ({ ...c, state: 'revealed' as const })),
+    };
+    expect(checkWin(settled)).toBe(settled);
+    expect(checkWin(settled).status).toBe('lost');
   });
 });
 
@@ -246,5 +275,18 @@ describe('minesRemaining', () => {
     expect(minesRemaining(board)).toBe(2);
     board = toggleFlag(board, 5);
     expect(minesRemaining(board)).toBe(1);
+  });
+
+  test('goes negative when the player over-flags', () => {
+    let board = createBoard({ rows: 3, cols: 3, mineCount: 2 });
+    board = placeMinesAt(board, [0, 1]);
+    for (const i of [5, 6, 7]) board = toggleFlag(board, i);
+    expect(minesRemaining(board)).toBe(-1);
+  });
+
+  test('reports the requested mineCount before mines are placed', () => {
+    const board = createBoard({ rows: 3, cols: 3, mineCount: 2 });
+    expect(board.minesPlaced).toBe(false);
+    expect(minesRemaining(board)).toBe(2);
   });
 });
