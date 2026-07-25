@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import {
+  chord,
   createBoard,
+  minesRemaining,
   neighbors,
   placeMines,
   placeMinesAt,
@@ -158,7 +160,7 @@ describe('reveal', () => {
 });
 
 describe('reveal with pre-revealed sections', () => {
-  test('a pre-revealed section does not wall off the flood fill', () => {
+  test('flood fill routes around a small pre-revealed section', () => {
     const sections: SectionSpec[] = [
       { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [5, 6] },
     ];
@@ -170,5 +172,79 @@ describe('reveal with pre-revealed sections', () => {
     board = reveal(board, 15); // far corner, other side of the section wall
     expect(board.cells.every((c) => c.state === 'revealed')).toBe(true);
     expect(board.status).toBe('won');
+  });
+
+  test('a section spanning a full column DOES wall off the flood fill', () => {
+    // 4x4, mine-free, column 1 (cells 1, 5, 9, 13) pre-revealed. The flood
+    // only enqueues *hidden* neighbors, so it cannot route through an
+    // already-revealed column: revealing 0 fills column 0 and stops there,
+    // leaving columns 2-3 hidden and the game unfinished.
+    const sections: SectionSpec[] = [
+      {
+        id: 'wall',
+        href: '/wall',
+        glyphs: ['一', '二', '三', '四'],
+        cells: [1, 5, 9, 13],
+      },
+    ];
+    let board = createBoard({
+      rows: 4, cols: 4, mineCount: 0,
+      sections, revealedSectionIds: ['wall'],
+    });
+    board = placeMinesAt(board, []);
+    board = reveal(board, 0);
+    for (const i of [0, 4, 8, 12]) {
+      expect(board.cells[i].state).toBe('revealed'); // column 0: flooded
+    }
+    for (const i of [1, 5, 9, 13]) {
+      expect(board.cells[i].state).toBe('revealed'); // column 1: pre-revealed
+    }
+    for (const i of [2, 3, 6, 7, 10, 11, 14, 15]) {
+      expect(board.cells[i].state).toBe('hidden'); // columns 2-3: unreachable
+    }
+    expect(board.status).toBe('playing');
+  });
+});
+
+describe('chord', () => {
+  // 4x4 with mines in the top corners (0, 3). reveal(12) floods rows 1-3,
+  // leaving row 0 hidden: cells 1 and 2 are safe "1"s, 0 and 3 are mines.
+  // (A 3x3/1-mine fixture is degenerate: the setup reveal insta-wins and
+  // chord never runs — do not shrink this fixture.)
+  const chordBase = () => {
+    let b = createBoard({ rows: 4, cols: 4, mineCount: 2 });
+    b = placeMinesAt(b, [0, 3]);
+    return reveal(b, 12); // status 'playing'; cells 4-15 revealed, 0-3 hidden
+  };
+
+  test('reveals unflagged neighbors when flags match the number', () => {
+    let board = chordBase();
+    board = toggleFlag(board, 0); // correctly flag the mine
+    board = chord(board, 5); // "1" next to the flag
+    expect(board.cells[1].state).toBe('revealed');
+    expect(board.cells[2].state).toBe('revealed');
+    expect(board.status).toBe('won');
+  });
+
+  test('does nothing when flag count does not match', () => {
+    const board = chordBase();
+    expect(chord(board, 5)).toBe(board); // no flags placed
+  });
+
+  test('loses if a flag was wrong', () => {
+    let board = chordBase();
+    board = toggleFlag(board, 1); // wrong flag on a safe cell
+    board = chord(board, 5); // reveals neighbors incl. the mine at 0
+    expect(board.status).toBe('lost');
+  });
+});
+
+describe('minesRemaining', () => {
+  test('mineCount minus flags', () => {
+    let board = createBoard({ rows: 3, cols: 3, mineCount: 2 });
+    board = placeMinesAt(board, [0, 1]);
+    expect(minesRemaining(board)).toBe(2);
+    board = toggleFlag(board, 5);
+    expect(minesRemaining(board)).toBe(1);
   });
 });

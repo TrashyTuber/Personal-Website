@@ -91,7 +91,7 @@ export function placeMines(
   return placeMinesAt(board, candidates.slice(0, board.mineCount));
 }
 
-function checkWin(board: Board): Board {
+export function checkWin(board: Board): Board {
   const won = board.cells.every((cell) => cell.mine || cell.state === 'revealed');
   return won ? { ...board, status: 'won' } : board;
 }
@@ -136,4 +136,32 @@ export function toggleFlag(board: Board, index: number): Board {
   const cells = cloneCells(board);
   cells[index].state = cell.state === 'flagged' ? 'hidden' : 'flagged';
   return { ...board, cells };
+}
+
+export function chord(
+  board: Board,
+  index: number,
+  rng: () => number = Math.random,
+): Board {
+  const cell = board.cells[index];
+  if (
+    board.status !== 'playing' ||
+    cell.state !== 'revealed' ||
+    cell.adjacent === 0
+  ) {
+    return board;
+  }
+  const around = neighbors(board, index);
+  const flags = around.filter((n) => board.cells[n].state === 'flagged').length;
+  if (flags !== cell.adjacent) return board;
+  let next = board;
+  for (const n of around) {
+    if (next.cells[n].state === 'hidden') next = reveal(next, n, rng);
+  }
+  return next;
+}
+
+export function minesRemaining(board: Board): number {
+  const flags = board.cells.filter((c) => c.state === 'flagged').length;
+  return board.mineCount - flags;
 }
