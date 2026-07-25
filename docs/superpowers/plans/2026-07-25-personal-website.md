@@ -908,12 +908,12 @@ import type { Board, Cell, SectionSpec } from '@/lib/minesweeper/types';
 const NUMBER_CLASSES: Record<number, string> = {
   1: 'text-n1',
   2: 'text-n2',
-  3: 'text-vermilion',
-  4: 'text-muted',
-  5: 'text-muted',
-  6: 'text-muted',
-  7: 'text-muted',
-  8: 'text-muted',
+  3: 'text-n3',
+  4: 'text-n4',
+  5: 'text-n5',
+  6: 'text-n6',
+  7: 'text-n7',
+  8: 'text-n8',
 };
 
 export interface GameBoardProps {
@@ -1349,7 +1349,7 @@ git commit -m "feat: typed content data files for projects and music"
 import Link from 'next/link';
 import type { Project } from '@/content/projects';
 
-const ORDINAL_CLASSES = ['text-n1', 'text-n2', 'text-vermilion', 'text-muted'];
+const ORDINAL_CLASSES = ['text-n1', 'text-n2', 'text-n3', 'text-muted'];
 
 export default function LatticeFrame({
   project,
@@ -1889,6 +1889,13 @@ git commit -m "feat: minesweeper page — personal bests and playable board"
 
 **Files:**
 - None new (fixes only, if verification finds issues)
+
+- [ ] **Step 0: Deferred polish from earlier reviews**
+
+- `npm i -D @testing-library/dom` (undeclared RTL peer dep); bump `@types/node` to `^22`; add `"typecheck": "tsc --noEmit"` script and `"engines": { "node": ">=20" }`.
+- Add `.claude/settings.local.json` to `.gitignore`; rewrite `README.md` (it still describes the CNA scaffold/Geist).
+- Add `metadataBase` (Vercel URL) and basic `openGraph` metadata to `app/layout.tsx`; add `app/apple-icon.png` (rasterized seal).
+- Review `npm audit` output (12 highs inherited from create-next-app tree); fix only what doesn't break.
 
 - [ ] **Step 1: Full test suite and build**
 
