@@ -8,6 +8,7 @@ const withAudio: MusicPiece = {
   title: 'String Quartet',
   instrumentation: 'string quartet',
   year: 2025,
+  category: 'Chamber',
   audioSrc: '/audio/quartet.mp3',
 };
 
@@ -16,6 +17,7 @@ const metadataOnly: MusicPiece = {
   title: 'Etude',
   instrumentation: 'solo piano',
   year: 2024,
+  category: 'Solo',
 };
 
 describe('MusicRow', () => {

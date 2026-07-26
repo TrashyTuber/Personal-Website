@@ -12,7 +12,9 @@ export default function MusicRow({ piece }: { piece: MusicPiece }) {
       )}
       <span className="flex-1" />
       <span className="font-mono-game text-sm text-muted">
-        {piece.instrumentation} · {piece.year}
+        {[piece.instrumentation, piece.duration, String(piece.year)]
+          .filter(Boolean)
+          .join(' · ')}
       </span>
     </div>
   );

@@ -6,7 +6,7 @@ export default function SiteFooter() {
           email
         </a>
         <a
-          href="https://github.com/REPLACE-github-username"
+          href="https://github.com/TrashyTuber"
           target="_blank"
           rel="noopener"
           className="hover:text-paper"
@@ -14,7 +14,7 @@ export default function SiteFooter() {
           github
         </a>
         <a
-          href="https://www.linkedin.com/in/REPLACE-linkedin-slug"
+          href="https://www.linkedin.com/in/yiming-jia-0a10a9258/"
           target="_blank"
           rel="noopener"
           className="hover:text-paper"
