@@ -8,6 +8,14 @@ export interface CreateOptions {
   revealedSectionIds?: string[];
 }
 
+/**
+ * A fresh board, with any section in `revealedSectionIds` restored as an
+ * already-cleared patch: the section's own cells *and* their whole
+ * neighbourhood come back revealed. A section's neighbourhood is mine-free by
+ * construction (see placeMines), so opening it costs the player nothing — and
+ * restoring the cells alone would leave the glyphs as floating islands in the
+ * unrevealed mass, which is not what finding them looked like.
+ */
 export function createBoard(opts: CreateOptions): Board {
   const { rows, cols, mineCount, sections = [], revealedSectionIds = [] } = opts;
   const cells: Cell[] = Array.from({ length: rows * cols }, () => ({
@@ -15,6 +23,7 @@ export function createBoard(opts: CreateOptions): Board {
     adjacent: 0,
     state: 'hidden',
   }));
+  const restored: number[] = [];
   for (const section of sections) {
     section.cells.forEach((index, i) => {
       if (index < 0 || index >= rows * cols) {
@@ -24,12 +33,24 @@ export function createBoard(opts: CreateOptions): Board {
       }
       cells[index].section = section.id;
       cells[index].glyph = section.glyphs[i];
-      if (revealedSectionIds.includes(section.id)) {
-        cells[index].state = 'revealed';
-      }
+      if (revealedSectionIds.includes(section.id)) restored.push(index);
     });
   }
-  return { rows, cols, mineCount, minesPlaced: false, status: 'playing', cells };
+  const board: Board = {
+    rows,
+    cols,
+    mineCount,
+    minesPlaced: false,
+    status: 'playing',
+    cells,
+  };
+  // Built after the Board exists so the neighbourhood can come from `neighbors`
+  // rather than a second, drift-prone copy of the index arithmetic.
+  for (const index of restored) {
+    cells[index].state = 'revealed';
+    for (const n of neighbors(board, index)) cells[n].state = 'revealed';
+  }
+  return board;
 }
 
 export function neighbors(board: Board, index: number): number[] {

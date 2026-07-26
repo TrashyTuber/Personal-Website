@@ -1,13 +1,19 @@
+import Duilian from '@/components/duilian';
 import HomeBoard from '@/components/home-board';
 import type { SectionSpec } from '@/lib/minesweeper/types';
 
 const COLS = 12;
 const at = (row: number, col: number) => row * COLS + col;
 
-// LAYOUT CONSTRAINT: section cells must never span a full row or column —
-// revealed section cells (whether restored from sessionStorage or found this
-// session) act as flood-fill walls, and a spanning wall would strand the
-// region behind it (see engine reveal semantics).
+// LAYOUT CONSTRAINT: a section's *neighbourhood* — its cells plus every cell
+// orthogonally or diagonally adjacent to them, i.e. one ring wider than the
+// pair below — must never span a full row or column. A found section opens as
+// that whole patch (whether restored from sessionStorage or uncovered this
+// session), revealed terrain acts as a flood-fill wall, and a spanning wall
+// would strand the region behind it (see engine reveal semantics).
+//
+// These pairs are horizontal, so each clearing is 4 cols x 3 rows: never 12
+// wide, never 8 tall.
 const HOME_SECTIONS: SectionSpec[] = [
   { id: 'projects', href: '/projects', label: 'Projects', glyphs: ['项', '目'], cells: [at(1, 7), at(1, 8)] },
   { id: 'music', href: '/music', label: 'Music', glyphs: ['音', '乐'], cells: [at(3, 4), at(3, 5)] },
@@ -21,9 +27,11 @@ const atM = (row: number, col: number) => row * MOBILE_COLS + col;
 // The same four sections turned portrait — 8 wide by 12 tall, so a phone gets
 // cells worth tapping instead of a squashed landscape grid.
 //
-// Same LAYOUT CONSTRAINT as above: no pair may span a full row or column. A
-// horizontal 2-cell pair cannot span an 8-wide row, and none of these share a
-// column, so both directions hold — but keep the rule in mind when moving them.
+// Same LAYOUT CONSTRAINT as above, and tighter here: a horizontal pair opens a
+// clearing 4 columns wide, which is half of this 8-wide board — cols 4-7 for
+// the pairs at cols 5-6, cols 1-4 for music, cols 0-3 for about. Half is not a
+// wall, and 3 rows of 12 never is either; but widening a pair to three cells
+// would put a clearing 5 of 8 columns across, so don't.
 const MOBILE_HOME_SECTIONS: SectionSpec[] = [
   { id: 'projects', href: '/projects', label: 'Projects', glyphs: ['项', '目'], cells: [atM(1, 5), atM(1, 6)] },
   { id: 'music', href: '/music', label: 'Music', glyphs: ['音', '乐'], cells: [atM(4, 2), atM(4, 3)] },
@@ -44,7 +52,27 @@ export default function Home() {
         They share a persistKey on purpose: sections found on one orientation
         stay found after a rotate or resize.
       */}
-      <div className="hidden w-full flex-col items-center md:flex">
+      <div className="relative hidden w-full flex-col items-center md:flex">
+        {/*
+          The couplet, hung the traditional way: 上联 on the right of the board,
+          下联 on the left. Only from xl up — below that the columns would crowd
+          the board or reach the spine. `inset-y-0` centres them against the
+          board without a transform, which the parallax handler owns; the
+          horizontal offsets are measured from the board's own 640px edge, so
+          the gap holds however wide the viewport gets.
+        */}
+        <Duilian
+          side="left"
+          hanzi="谈笑破局"
+          gloss="the puzzle broken mid-laughter"
+          className="absolute inset-y-0 right-[calc(50%+360px)] hidden xl:flex"
+        />
+        <Duilian
+          side="right"
+          hanzi="方寸藏雷"
+          gloss="thunder hidden in a square inch"
+          className="absolute inset-y-0 left-[calc(50%+360px)] hidden xl:flex"
+        />
         <HomeBoard
           key="desktop"
           sections={HOME_SECTIONS}

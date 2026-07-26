@@ -7,6 +7,7 @@ import {
   chord,
   createBoard,
   minesRemaining,
+  neighbors,
   reveal,
   toggleFlag,
 } from '@/lib/minesweeper/engine';
@@ -259,7 +260,14 @@ export default function GameBoard({
     [],
   );
 
-  /** Fully open any section that was touched, and persist the found list. */
+  /**
+   * Fully open any section that was touched — its own cells *and* their whole
+   * neighbourhood — and persist the found list. Opening the neighbourhood is
+   * safe: placeMines forbids mines on a section cell or anything adjacent to
+   * one, so every cell touched here is guaranteed mine-free. It is also what
+   * makes a found section read as a cleared patch rather than a pair of glyphs
+   * marooned in the unrevealed mass (createBoard restores it the same way).
+   */
   function settleSections(next: Board): Board {
     if (sections.length === 0) return next;
     const cells = next.cells.map((c) => ({ ...c }));
@@ -267,7 +275,16 @@ export default function GameBoard({
     for (const s of sections) {
       if (s.cells.some((i) => cells[i].state === 'revealed')) {
         found.push(s.id);
-        for (const i of s.cells) cells[i].state = 'revealed';
+        for (const i of s.cells) {
+          cells[i].state = 'revealed';
+          // Flagged neighbours are left alone rather than cleared: the flag is
+          // on a safe cell, but it is the player's mark and wiping it silently
+          // is the more destructive choice. A flag left standing simply keeps
+          // that cell unrevealed — no effect beyond the player's own tidying.
+          for (const n of neighbors(next, i)) {
+            if (cells[n].state === 'hidden') cells[n].state = 'revealed';
+          }
+        }
       }
     }
     if (persistKey) {

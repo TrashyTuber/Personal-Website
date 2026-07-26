@@ -43,6 +43,30 @@ describe('createBoard', () => {
     expect(board.cells[0].state).toBe('hidden');
   });
 
+  test('restores a found section as a cleared patch, not a floating island', () => {
+    // 4x5, section on cells 10 and 11 (row 2, cols 0-1). Their combined
+    // neighbourhood is rows 1-3 x cols 0-2 — mine-free by construction, so
+    // restoring it costs the player nothing and matches what finding the
+    // section looked like at the time.
+    const board = createBoard({
+      rows: 4, cols: 5, mineCount: 3,
+      sections: SECTIONS,
+      revealedSectionIds: ['music'],
+    });
+    for (const i of [5, 6, 7, 10, 11, 12, 15, 16, 17]) {
+      expect(board.cells[i].state).toBe('revealed');
+    }
+    // Row 0, and everything from col 3 out, is untouched.
+    for (const i of [0, 1, 2, 3, 4, 8, 9, 13, 14, 18, 19]) {
+      expect(board.cells[i].state).toBe('hidden');
+    }
+  });
+
+  test('leaves the board hidden when no section is restored', () => {
+    const board = createBoard({ rows: 4, cols: 5, mineCount: 3, sections: SECTIONS });
+    expect(board.cells.every((c) => c.state === 'hidden')).toBe(true);
+  });
+
   test('throws when a section cell index is out of range', () => {
     const bad: SectionSpec[] = [
       { id: 'music', href: '/music', glyphs: ['音'], cells: [20] },
@@ -162,46 +186,50 @@ describe('reveal', () => {
 
 describe('reveal with pre-revealed sections', () => {
   test('flood fill routes around a small pre-revealed section', () => {
+    // 5x5 with the section on the centre cell: the restored clearing is the
+    // middle 3x3, an island the flood has to travel around rather than a wall.
     const sections: SectionSpec[] = [
-      { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [5, 6] },
+      { id: 'music', href: '/music', glyphs: ['音'], cells: [12] },
     ];
     let board = createBoard({
-      rows: 4, cols: 4, mineCount: 0,
+      rows: 5, cols: 5, mineCount: 0,
       sections, revealedSectionIds: ['music'],
     });
     board = placeMinesAt(board, []);
-    board = reveal(board, 15); // far corner, other side of the section wall
+    board = reveal(board, 0); // corner, outside the clearing
     expect(board.cells.every((c) => c.state === 'revealed')).toBe(true);
     expect(board.status).toBe('won');
   });
 
   test('a section spanning a full column DOES wall off the flood fill', () => {
-    // 4x4, mine-free, column 1 (cells 1, 5, 9, 13) pre-revealed. The flood
-    // only enqueues *hidden* neighbors, so it cannot route through an
-    // already-revealed column: revealing 0 fills column 0 and stops there,
-    // leaving columns 2-3 hidden and the game unfinished.
+    // 4x6, mine-free, column 2 (cells 2, 8, 14, 20) pre-revealed — which now
+    // restores columns 1-3 as a cleared band. The flood only enqueues *hidden*
+    // neighbors, so it cannot route through already-revealed terrain:
+    // revealing 0 fills column 0 and stops at the band, leaving columns 4-5
+    // hidden and the game unfinished. This is the constraint app/page.tsx
+    // encodes — no section's neighbourhood may span a full row or column.
     const sections: SectionSpec[] = [
       {
         id: 'wall',
         href: '/wall',
         glyphs: ['一', '二', '三', '四'],
-        cells: [1, 5, 9, 13],
+        cells: [2, 8, 14, 20],
       },
     ];
     let board = createBoard({
-      rows: 4, cols: 4, mineCount: 0,
+      rows: 4, cols: 6, mineCount: 0,
       sections, revealedSectionIds: ['wall'],
     });
     board = placeMinesAt(board, []);
     board = reveal(board, 0);
-    for (const i of [0, 4, 8, 12]) {
+    for (const i of [0, 6, 12, 18]) {
       expect(board.cells[i].state).toBe('revealed'); // column 0: flooded
     }
-    for (const i of [1, 5, 9, 13]) {
-      expect(board.cells[i].state).toBe('revealed'); // column 1: pre-revealed
+    for (const i of [1, 2, 3, 7, 8, 9, 13, 14, 15, 19, 20, 21]) {
+      expect(board.cells[i].state).toBe('revealed'); // columns 1-3: the band
     }
-    for (const i of [2, 3, 6, 7, 10, 11, 14, 15]) {
-      expect(board.cells[i].state).toBe('hidden'); // columns 2-3: unreachable
+    for (const i of [4, 5, 10, 11, 16, 17, 22, 23]) {
+      expect(board.cells[i].state).toBe('hidden'); // columns 4-5: unreachable
     }
     expect(board.status).toBe('playing');
   });

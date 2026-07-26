@@ -129,6 +129,44 @@ describe('GameBoard', () => {
     expect(sectionTile('Music')).toHaveTextContent('音');
   });
 
+  test('finding a section clears its neighbourhood, leaving flags standing', () => {
+    // 5x5, mine-free. Column 2 is flagged into a wall the flood cannot cross
+    // (it only enqueues hidden cells), and the section straddles it: cell 11 is
+    // on the flooded side, cell 13 is not. So everything opened around 13 got
+    // there through settleSections, not through the flood.
+    const sections = [
+      { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [11, 13] },
+    ];
+    const { container } = render(
+      <GameBoard
+        rows={5}
+        cols={5}
+        mineCount={0}
+        sections={sections}
+        showStatus={false}
+      />,
+    );
+    // Section tiles lose their coordinate names once uncovered, and both cells
+    // of a section share one name — so address cells by index here.
+    const at = (i: number) => container.querySelector(`[data-idx="${i}"]`)!;
+
+    for (const i of [2, 7, 12, 17, 22]) fireEvent.contextMenu(at(i));
+    fireEvent.click(at(0));
+
+    expect(at(13)).toHaveAttribute('data-state', 'revealed');
+    for (const i of [8, 9, 14, 18, 19]) {
+      expect(at(i)).toHaveAttribute('data-state', 'revealed');
+    }
+    // Outside the neighbourhood and behind the wall: still covered.
+    for (const i of [3, 4, 23, 24]) {
+      expect(at(i)).toHaveAttribute('data-state', 'hidden');
+    }
+    // Flagged neighbours of the section keep their flags.
+    for (const i of [7, 12, 17]) {
+      expect(at(i)).toHaveAttribute('data-state', 'flagged');
+    }
+  });
+
   test('a sessionStorage write that throws does not break the reveal', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError'); // Safari private mode
