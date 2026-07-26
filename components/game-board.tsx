@@ -80,6 +80,13 @@ export interface GameBoardProps {
    * this lets a page render an English cue without owning the game state.
    */
   onFoundChange?: (ids: string[]) => void;
+  /**
+   * Notified once per run, on the winning move, with elapsed play time in
+   * milliseconds (first reveal → win). Kept separate from the Timer leaf —
+   * which owns the *displayed* clock — so pages can compute record deltas;
+   * the two may differ by a display tick.
+   */
+  onWin?: (elapsedMs: number) => void;
 }
 
 function loadFound(persistKey?: string): string[] {
@@ -217,6 +224,7 @@ export default function GameBoard({
   className = 'max-w-[420px]',
   onStatusChange,
   onFoundChange,
+  onWin,
 }: GameBoardProps) {
   const router = useRouter();
   const makeBoard = (found: string[]): Board =>
@@ -241,6 +249,8 @@ export default function GameBoard({
   /** Set when a hold has flagged, cleared when the finger lifts. */
   const longPressFired = useRef(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Date.now() at the first reveal — the win delta's start line. */
+  const startedAt = useRef(0);
 
   // sessionStorage is client-only: restore found sections after mount. Reading
   // it in the state initializer instead would desync the server HTML from the
@@ -325,6 +335,9 @@ export default function GameBoard({
     // mirrors this into state is idempotent, and 'won' has to get through here
     // because nothing else runs after the winning move.
     onStatusChange?.(settled.status);
+    if (settled.status === 'won') {
+      onWin?.(Date.now() - startedAt.current);
+    }
     if (settled.status === 'lost') {
       setShaking(true);
       resetTimer.current = setTimeout(reset, RESET_DELAY_MS);
@@ -342,7 +355,10 @@ export default function GameBoard({
       setBoard((b) => toggleFlag(b, index));
       return;
     }
-    if (!started) setStarted(true);
+    if (!started) {
+      startedAt.current = Date.now();
+      setStarted(true);
+    }
     commit(reveal(board, index));
   }
 

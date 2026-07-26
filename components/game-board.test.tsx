@@ -416,4 +416,17 @@ describe('GameBoard status', () => {
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-pressed', 'true');
   });
+
+  test('onWin reports elapsed milliseconds on the winning move', () => {
+    const onWin = vi.fn();
+    render(<GameBoard rows={2} cols={2} mineCount={0} onWin={onWin} />);
+
+    // 0 mines: first reveal floods the board and wins immediately.
+    fireEvent.click(cell(0, 0));
+
+    expect(onWin).toHaveBeenCalledTimes(1);
+    const [elapsed] = onWin.mock.calls[0];
+    expect(typeof elapsed).toBe('number');
+    expect(elapsed).toBeGreaterThanOrEqual(0);
+  });
 });
