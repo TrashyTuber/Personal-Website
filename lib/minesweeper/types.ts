@@ -27,6 +27,12 @@ export interface SectionSpec {
   id: string;
   href: string;
   glyphs: string[];
+  /**
+   * English display label for reveal cues and accessibility. The glyphs alone
+   * are opaque to a non-Chinese reader, so anything that names an uncovered
+   * section in English reads this; callers that omit it fall back to `id`.
+   */
+  label?: string;
   /** Board indices for each glyph, same order as `glyphs`. */
   cells: number[];
 }

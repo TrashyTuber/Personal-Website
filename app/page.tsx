@@ -1,4 +1,4 @@
-import GameBoard from '@/components/game-board';
+import HomeBoard from '@/components/home-board';
 import type { SectionSpec } from '@/lib/minesweeper/types';
 
 const COLS = 12;
@@ -9,10 +9,10 @@ const at = (row: number, col: number) => row * COLS + col;
 // session) act as flood-fill walls, and a spanning wall would strand the
 // region behind it (see engine reveal semantics).
 const HOME_SECTIONS: SectionSpec[] = [
-  { id: 'projects', href: '/projects', glyphs: ['项', '目'], cells: [at(1, 7), at(1, 8)] },
-  { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [at(3, 4), at(3, 5)] },
-  { id: 'minesweeper', href: '/minesweeper', glyphs: ['扫', '雷'], cells: [at(5, 9), at(5, 10)] },
-  { id: 'about', href: '/about', glyphs: ['关', '于'], cells: [at(6, 2), at(6, 3)] },
+  { id: 'projects', href: '/projects', label: 'Projects', glyphs: ['项', '目'], cells: [at(1, 7), at(1, 8)] },
+  { id: 'music', href: '/music', label: 'Music', glyphs: ['音', '乐'], cells: [at(3, 4), at(3, 5)] },
+  { id: 'minesweeper', href: '/minesweeper', label: 'Minesweeper', glyphs: ['扫', '雷'], cells: [at(5, 9), at(5, 10)] },
+  { id: 'about', href: '/about', label: 'About', glyphs: ['关', '于'], cells: [at(6, 2), at(6, 3)] },
 ];
 
 export default function Home() {
@@ -21,7 +21,7 @@ export default function Home() {
       {/* The visible wordmark is a span inside the board's status strip, so the
           page's document outline needs its own heading. */}
       <h1 className="sr-only">Yiming Jia — 贾一茗</h1>
-      <GameBoard
+      <HomeBoard
         sections={HOME_SECTIONS}
         persistKey="yj-found-sections"
         className="max-w-[640px]"

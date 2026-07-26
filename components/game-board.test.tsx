@@ -22,6 +22,14 @@ function cell(row: number, col: number): HTMLElement {
   return screen.getByRole('button', { name: `cell ${row},${col}` });
 }
 
+/**
+ * An uncovered section tile trades its coordinate name for an English one, so
+ * it can no longer be addressed by row/col.
+ */
+function sectionTile(name: string): HTMLElement {
+  return screen.getByRole('button', { name: `${name} — uncovered, open page` });
+}
+
 const MUSIC = [{ id: 'music', href: '/music', glyphs: ['音'], cells: [4] }];
 
 /** Advance fake timers inside act() so React flushes the resulting state. */
@@ -64,8 +72,8 @@ describe('GameBoard', () => {
       />,
     );
     fireEvent.click(cell(0, 0)); // flood reveal (0 mines) — includes the section tile
-    expect(cell(1, 1)).toHaveTextContent('音');
-    fireEvent.click(cell(1, 1));
+    expect(sectionTile('music')).toHaveTextContent('音');
+    fireEvent.click(sectionTile('music'));
     expect(push).toHaveBeenCalledWith('/music');
   });
 
@@ -89,6 +97,38 @@ describe('GameBoard', () => {
     ]);
   });
 
+  test('onFoundChange reports the sections a reveal uncovered', () => {
+    const onFoundChange = vi.fn();
+    render(
+      <GameBoard
+        rows={3}
+        cols={3}
+        mineCount={0}
+        sections={MUSIC}
+        showStatus={false}
+        onFoundChange={onFoundChange}
+      />,
+    );
+    fireEvent.click(cell(0, 0)); // 0 mines: the flood opens the section tile
+    expect(onFoundChange).toHaveBeenCalledWith(['music']);
+  });
+
+  test('an uncovered section tile is named in English, not by coordinates', () => {
+    const sections = [{ ...MUSIC[0], label: 'Music' }];
+    render(
+      <GameBoard
+        rows={3}
+        cols={3}
+        mineCount={0}
+        sections={sections}
+        showStatus={false}
+      />,
+    );
+    expect(cell(1, 1)).toBeInTheDocument(); // hidden: still a coordinate
+    fireEvent.click(cell(0, 0));
+    expect(sectionTile('Music')).toHaveTextContent('音');
+  });
+
   test('a sessionStorage write that throws does not break the reveal', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError'); // Safari private mode
@@ -104,7 +144,7 @@ describe('GameBoard', () => {
       />,
     );
     fireEvent.click(cell(0, 0));
-    expect(cell(1, 1)).toHaveAttribute('data-state', 'revealed');
+    expect(sectionTile('music')).toHaveAttribute('data-state', 'revealed');
   });
 });
 
@@ -184,10 +224,10 @@ describe('GameBoard touch', () => {
     );
     fireEvent.click(cell(0, 0));
 
-    fireEvent.touchStart(cell(1, 1));
+    fireEvent.touchStart(sectionTile('music'));
     tick(450);
-    fireEvent.touchEnd(cell(1, 1));
-    fireEvent.click(cell(1, 1));
+    fireEvent.touchEnd(sectionTile('music'));
+    fireEvent.click(sectionTile('music'));
     expect(push).toHaveBeenCalledWith('/music');
   });
 });

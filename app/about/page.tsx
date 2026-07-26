@@ -30,19 +30,20 @@ export default function AboutPage() {
   return (
     <div className="mx-auto max-w-xl px-6 py-16">
       <h1 className="text-lg tracking-[0.5em] text-paper">
-        <span lang="zh-Hans">关于</span>{' '}
-        <span className="font-mono-game text-xs tracking-normal text-faint">
-          / ABOUT
+        ABOUT{' '}
+        <span className="font-serif-sc text-sm tracking-normal text-faint">
+          / <span lang="zh-Hans">关于</span>
         </span>
       </h1>
       {SECTIONS.map((section) => (
         <section key={section.en} className="mt-16">
           <div className="flex items-baseline gap-3">
-            <h2 lang="zh-Hans" className="text-2xl font-light">
+            <h2 className="text-2xl font-light">{section.en}</h2>
+            <span
+              lang="zh-Hans"
+              className="font-serif-sc text-base text-faint"
+            >
               {section.zh}
-            </h2>
-            <span className="font-mono-game text-xs tracking-[0.3em] text-faint">
-              {section.en.toUpperCase()}
             </span>
           </div>
           <div className="mt-3 h-px w-12 bg-hairline-2" />

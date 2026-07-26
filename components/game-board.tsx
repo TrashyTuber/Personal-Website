@@ -64,6 +64,13 @@ export interface GameBoardProps {
    * *visible* feedback without owning the game state.
    */
   onStatusChange?: (status: GameStatus) => void;
+  /**
+   * Notified with the ids of every section uncovered so far — after a move that
+   * opens one, and once on mount if any were restored from sessionStorage. The
+   * board itself can only say "found" in hanzi (the glyphs on the tiles), so
+   * this lets a page render an English cue without owning the game state.
+   */
+  onFoundChange?: (ids: string[]) => void;
 }
 
 function loadFound(persistKey?: string): string[] {
@@ -153,6 +160,7 @@ export default function GameBoard({
   // without producing two conflicting Tailwind max-w-* classes.
   className = 'max-w-[420px]',
   onStatusChange,
+  onFoundChange,
 }: GameBoardProps) {
   const router = useRouter();
   const makeBoard = (found: string[]): Board =>
@@ -181,8 +189,11 @@ export default function GameBoard({
   // first client render, so the setState-in-effect is deliberate here.
   useEffect(() => {
     const found = loadFound(persistKey);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (found.length > 0) setBoard(makeBoard(found));
+    if (found.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBoard(makeBoard(found));
+      onFoundChange?.(found);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -212,6 +223,10 @@ export default function GameBoard({
         // Safari private mode throws on write; the board plays on regardless.
       }
     }
+    // Fired unconditionally, like onStatusChange: a listener mirroring this
+    // into state is idempotent, and `found` is rebuilt from scratch each time
+    // so it is always the complete list, never a delta.
+    onFoundChange?.(found);
     return { ...next, cells };
   }
 
@@ -370,6 +385,14 @@ export default function GameBoard({
         {board.cells.map((cell, i) => {
           const row = Math.floor(i / cols);
           const col = i % cols;
+          // An uncovered section tile is a link in all but name: its glyphs are
+          // hanzi, so the coordinate label would leave a screen-reader user with
+          // no idea what it opens. Hidden cells stay coordinates.
+          const opens =
+            cell.state === 'revealed' && cell.section
+              ? (sections.find((s) => s.id === cell.section)?.label ??
+                cell.section)
+              : null;
           return (
             <button
               key={i}
@@ -377,7 +400,9 @@ export default function GameBoard({
               data-idx={i}
               data-state={cell.state}
               tabIndex={i === focusIdx ? 0 : -1}
-              aria-label={`cell ${row},${col}`}
+              aria-label={
+                opens ? `${opens} — uncovered, open page` : `cell ${row},${col}`
+              }
               className={cellClass(cell)}
               onClick={() => {
                 // Swallow the click a long-press synthesizes. The window
