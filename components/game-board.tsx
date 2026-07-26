@@ -112,7 +112,8 @@ function cellContent(cell: Cell) {
     return (
       <span
         lang="zh-Hans"
-        className="font-serif-sc text-[16px] font-normal motion-safe:animate-cell-pop md:text-[19px]"
+        // 1.26em of the grid's tile-scaled size ≈ 48% of a tile.
+        className="font-serif-sc text-[1.26em] font-normal motion-safe:animate-cell-pop"
       >
         {cell.glyph}
       </span>
@@ -159,7 +160,7 @@ function cellClass(cell: Cell): string {
   // `relative` + `focus-visible:z-10` so the focus ring is not clipped by the
   // neighbouring cells it now touches (the grid has no gap).
   const base =
-    'relative flex aspect-square select-none touch-manipulation items-center justify-center font-mono-game text-[13px] font-bold outline-none [-webkit-touch-callout:none] focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-vermilion md:text-[15px]';
+    'relative flex aspect-square select-none touch-manipulation items-center justify-center font-mono-game font-bold outline-none [-webkit-touch-callout:none] focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-vermilion';
   // Revealed terrain has no face of its own: the numbers float on the page ink.
   // The hairline-thin inset is a spatial reference only, and is meant to sit
   // just at the edge of visibility.
@@ -436,7 +437,7 @@ export default function GameBoard({
         : '';
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full [container-type:inline-size] ${className}`}>
       {showStatus && (
         <div className="flex items-center justify-between border-b border-hairline pb-2 font-mono-game text-sm text-muted">
           <span aria-label="mines remaining">
@@ -478,7 +479,13 @@ export default function GameBoard({
             ? 'border-seal motion-safe:animate-board-shake'
             : 'border-transparent'
         }`}
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        // Cell type scales with tile width — 38% of one tile (100cqw/cols),
+        // clamped so tiny boards stay legible and big tiles don't balloon.
+        // The cqw resolves against the wrapper div's container-type above.
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          fontSize: `clamp(13px, ${(38 / cols).toFixed(3)}cqw, 20px)`,
+        }}
       >
         {board.cells.map((cell, i) => {
           const row = Math.floor(i / cols);
