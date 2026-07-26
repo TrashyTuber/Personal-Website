@@ -41,7 +41,9 @@ const MOBILE_HOME_SECTIONS: SectionSpec[] = [
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-[85vh] flex-col items-center justify-center px-4 py-10">
+    // min-h-full: fill the main area exactly, so the inset-y-0 couplet bands
+    // run from the top of the screen to the footer with no dead strip.
+    <div className="relative flex min-h-full flex-col items-center justify-center px-4 py-10">
       {/* The visible wordmark is a span inside the board's status strip, so the
           page's document outline needs its own heading. */}
       <h1 className="sr-only">Yiming Jia — 贾一茗</h1>

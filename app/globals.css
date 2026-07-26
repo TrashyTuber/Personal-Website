@@ -28,7 +28,7 @@
 
   --animate-board-shake: board-shake 0.45s ease;
   /* Continuous vertical marquee for the homepage duilian flanks. */
-  --animate-duilian-marquee: duilian-marquee 28s linear infinite;
+  --animate-duilian-marquee: duilian-marquee 48s linear infinite;
 }
 
 /* The band's two halves are identical, so -50% wraps seamlessly. */
