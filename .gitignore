@@ -46,3 +46,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/settings.local.json
+
+# Local session docs — never committed
+CLAUDE.md
+HANDOFF.md
