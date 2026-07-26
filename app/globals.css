@@ -14,27 +14,33 @@
   /* vermilion lightened to clear 4.5:1 for small text; fills/glyphs keep --color-vermilion */
   --color-vermilion-text: #d9573c;
   --color-seal: #f5f0e6;
-  --color-n1: #4a9eff;
-  --color-n2: #8fd694;
-  --color-n3: #d94f33;
-  --color-n4: #b07fd0;
-  --color-n5: #d4a017;
-  --color-n6: #4fb3a8;
-  --color-n7: #e8e4dc;
-  --color-n8: #8a8a88;
+  /*
+   * Board-count palette in traditional mineral pigments — 青 slate-azure,
+   * 金 gold, 朱 cinnabar, 白 paper — instead of the classic Windows rainbow,
+   * so the numbers speak the site's own language. 1-4 (the common counts)
+   * are separated by hue AND luminance; 5-8 are brighter kin of 1-4. All
+   * clear 4.5:1 on ink.
+   */
+  --color-n1: #7d95a8;
+  --color-n2: #c9a961;
+  --color-n3: #d9573c;
+  --color-n4: #e8e4dc;
+  --color-n5: #e8b04b;
+  --color-n6: #9fc0d8;
+  --color-n7: #f0876b;
+  --color-n8: #ffffff;
 
   --font-serif-sc: var(--font-noto-serif-sc, Georgia), Georgia, serif;
   --font-mono-game: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
 
   --animate-board-shake: board-shake 0.45s ease;
-  /* Continuous vertical marquee for the homepage duilian flanks. */
-  --animate-duilian-marquee: duilian-marquee 48s linear infinite;
+  /* Newly revealed cell content pops in — the "something happened" beat. */
+  --animate-cell-pop: cell-pop 0.14s ease-out;
 }
 
-/* The band's two halves are identical, so -50% wraps seamlessly. */
-@keyframes duilian-marquee {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(0, -50%, 0); }
+@keyframes cell-pop {
+  from { transform: scale(0.55); opacity: 0.2; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 @keyframes board-shake {

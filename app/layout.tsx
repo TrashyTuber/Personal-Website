@@ -41,7 +41,7 @@ export default function RootLayout({
             exact height — percentage min-heights don't resolve against a
             flex-stretched block parent. Other pages' mx-auto roots are
             unaffected. */}
-        <main className="flex flex-1 flex-col md:pl-[72px]">{children}</main>
+        <main className="flex flex-1 flex-col md:pl-[88px]">{children}</main>
         <SiteFooter />
       </body>
     </html>

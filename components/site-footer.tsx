@@ -1,6 +1,6 @@
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-hairline px-6 py-8 md:pl-[96px]">
+    <footer className="border-t border-hairline px-6 py-8 md:pl-[112px]">
       <div className="flex flex-wrap items-baseline gap-6 font-mono-game text-sm text-muted">
         <a href="mailto:jasonjiaym@gmail.com" className="hover:text-paper">
           email

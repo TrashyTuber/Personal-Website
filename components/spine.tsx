@@ -114,7 +114,7 @@ export default function Spine() {
   return (
     <>
       {/* Desktop: fixed vertical spine */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-[72px] flex-col items-center border-r border-hairline-2 bg-ink py-6 md:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-[88px] flex-col items-center border-r border-hairline-2 bg-ink py-6 md:flex">
         <Link
           href="/"
           lang="zh-Hans"

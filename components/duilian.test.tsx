@@ -2,13 +2,10 @@ import { describe, expect, test } from 'vitest';
 import { render } from '@testing-library/react';
 import Duilian from './duilian';
 
-/** The positioned flank wraps the band the animation runs on. */
-function band(container: HTMLElement): HTMLElement {
-  return container.querySelector<HTMLElement>('[aria-hidden="true"] > div')!;
-}
-
 function renderColumn(side: 'left' | 'right') {
-  return render(<Duilian side={side} hanzi="方寸藏雷" />);
+  return render(
+    <Duilian side={side} hanzi="方寸藏雷" gloss="thunder in a square inch" />,
+  );
 }
 
 describe('Duilian', () => {
@@ -21,26 +18,20 @@ describe('Duilian', () => {
     );
   });
 
-  test('marquee runs on a motion-safe CSS loop with doubled content', () => {
-    const { container } = renderColumn('right');
-    const el = band(container);
-    // motion-safe: gating is the reduced-motion story — the animation class
-    // must never appear without it.
-    expect(el.className).toContain('motion-safe:animate-duilian-marquee');
-    // Two identical halves make the -50% keyframe wrap seamless.
-    const halves = el.querySelectorAll('[lang="zh-Hans"]');
-    expect(halves).toHaveLength(2);
-    expect(halves[0].textContent).toBe(halves[1].textContent);
-    // The phrase actually repeats within a half — it is a band, not a plaque.
-    expect(
-      (halves[0].textContent!.match(/方寸藏雷/g) ?? []).length,
-    ).toBeGreaterThan(1);
+  test('is a static inscription: no animation classes anywhere', () => {
+    const { container } = renderColumn('left');
+    expect(container.innerHTML).not.toContain('animate-');
+    expect(container.innerHTML).not.toContain('animation');
   });
 
-  test('the two flanks stream in opposite directions', () => {
-    const left = band(renderColumn('left').container);
-    const right = band(renderColumn('right').container);
-    expect(left.style.animationDirection).toBe('');
-    expect(right.style.animationDirection).toBe('reverse');
+  test('the gloss sits beneath the hanzi, once', () => {
+    const { container } = renderColumn('left');
+    const flank = container.querySelector('[aria-hidden="true"]')!;
+    expect(flank.lastElementChild).toHaveTextContent(
+      'thunder in a square inch',
+    );
+    expect(
+      (container.textContent!.match(/thunder in a square inch/g) ?? []).length,
+    ).toBe(1);
   });
 });

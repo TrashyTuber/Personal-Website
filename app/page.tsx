@@ -59,12 +59,14 @@ export default function Home() {
       <Duilian
         side="left"
         hanzi="谈笑破局"
-        className="absolute inset-y-0 right-[calc(50%+360px)] hidden xl:block"
+        gloss="the puzzle broken mid-laughter"
+        className="absolute inset-y-0 right-[calc(50%+360px)] hidden xl:flex"
       />
       <Duilian
         side="right"
         hanzi="方寸藏雷"
-        className="absolute inset-y-0 left-[calc(50%+360px)] hidden xl:block"
+        gloss="thunder hidden in a square inch"
+        className="absolute inset-y-0 left-[calc(50%+360px)] hidden xl:flex"
       />
       {/*
         One geometry per breakpoint. Board geometry is read once at mount, so

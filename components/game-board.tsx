@@ -96,23 +96,23 @@ function cellContent(cell: Cell) {
   if (cell.state === 'flagged') {
     // A quiet seal-cream dot marks a flagged cell — a mark, not a symbol.
     return (
-      <span className="block h-1.5 w-1.5 rounded-full bg-seal md:h-2 md:w-2" />
+      <span className="block h-1.5 w-1.5 rounded-full bg-seal motion-safe:animate-cell-pop md:h-2 md:w-2" />
     );
   }
   if (cell.state !== 'revealed') return null;
-  if (cell.mine) return <span className="text-vermilion">✕</span>;
+  if (cell.mine) return <span className="text-vermilion motion-safe:animate-cell-pop">✕</span>;
   if (cell.glyph) {
     return (
       <span
         lang="zh-Hans"
-        className="font-serif-sc text-[16px] font-normal md:text-[19px]"
+        className="font-serif-sc text-[16px] font-normal motion-safe:animate-cell-pop md:text-[19px]"
       >
         {cell.glyph}
       </span>
     );
   }
   if (cell.adjacent > 0) {
-    return <span className={NUMBER_CLASSES[cell.adjacent]}>{cell.adjacent}</span>;
+    return <span className={`motion-safe:animate-cell-pop ${NUMBER_CLASSES[cell.adjacent]}`}>{cell.adjacent}</span>;
   }
   return null;
 }
@@ -166,7 +166,7 @@ function cellClass(cell: Cell): string {
   // lighten reads as the same mass responding instead — as a filter rather than
   // a second background colour, so the plain and flagged faces lighten by the
   // same amount without a hand-tuned hover colour for each.
-  const unrevealed = `${base} transition-[filter] hover:brightness-125 motion-reduce:transition-none`;
+  const unrevealed = `${base} transition-[filter] hover:brightness-125 active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] motion-reduce:transition-none`;
   // Flagged tiles sit a shade lighter so a flag reads at a glance on the mass.
   return cell.state === 'flagged'
     ? `${unrevealed} bg-[#a03119]`
