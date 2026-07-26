@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: '关于 About — Yiming Jia' };
+export const metadata: Metadata = { title: 'About — Yiming Jia' };
 
 const SECTIONS: { zh: string; en: string; body: string[] }[] = [
   {

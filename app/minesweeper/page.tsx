@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import PlayableBoard from '@/components/playable-board';
 
-export const metadata: Metadata = { title: '扫雷 Minesweeper — Yiming Jia' };
+export const metadata: Metadata = { title: 'Minesweeper — Yiming Jia' };
 
 const TIMES = [
   { level: 'Expert', zh: '高级', grid: '30×16 · 99 mines', time: '52s' },

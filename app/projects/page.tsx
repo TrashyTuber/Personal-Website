@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LatticeFrame from '@/components/lattice-frame';
 import { projects } from '@/content/projects';
 
-export const metadata: Metadata = { title: '项目 Projects — Yiming Jia' };
+export const metadata: Metadata = { title: 'Projects — Yiming Jia' };
 
 export default function ProjectsPage() {
   const ordered = [

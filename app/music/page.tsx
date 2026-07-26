@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import MusicRow from '@/components/music-row';
 import { pieces } from '@/content/music';
 
-export const metadata: Metadata = { title: '音乐 Music — Yiming Jia' };
+export const metadata: Metadata = { title: 'Music — Yiming Jia' };
 
 export default function MusicPage() {
   const ordered = [...pieces].sort((a, b) => b.year - a.year);
