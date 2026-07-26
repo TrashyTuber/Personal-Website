@@ -3,55 +3,107 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+/**
+ * English-first labels; `zh` is the dim hanzi rail that sits beside the English
+ * stack on desktop only. `/cv.pdf` has no hanzi and is a static asset, not a route.
+ */
 const NAV = [
-  { href: '/projects', zh: '项目', en: 'Projects', lang: 'zh-Hans' },
-  { href: '/music', zh: '音乐', en: 'Music', lang: 'zh-Hans' },
-  { href: '/about', zh: '关于', en: 'About', lang: 'zh-Hans' },
-  { href: '/minesweeper', zh: '扫雷', en: 'Minesweeper', lang: 'zh-Hans' },
-  { href: '/cv.pdf', zh: 'CV', en: 'CV', lang: undefined },
+  { href: '/projects', en: 'WORK', zh: '项目' },
+  { href: '/music', en: 'MUSIC', zh: '音乐' },
+  { href: '/about', en: 'ABOUT', zh: '关于' },
+  { href: '/minesweeper', en: 'SWEEP', zh: '扫雷' },
+  { href: '/cv.pdf', en: 'CV', zh: undefined },
 ];
 
 const FOCUS_RING =
   'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vermilion';
 
-function navLinkProps(pathname: string, href: string, extra: string) {
-  const active = href !== '/cv.pdf' && pathname.startsWith(href);
-  return {
-    className: `${extra} text-sm tracking-[0.35em] transition-colors hover:text-paper ${FOCUS_RING} ${
-      active ? 'text-vermilion-text' : 'text-muted'
-    }`,
+/** English label: upright Latin letters stacked top-to-bottom. */
+const EN_VERTICAL =
+  '[writing-mode:vertical-rl] [text-orientation:upright] font-mono-game text-xs tracking-[0.15em]';
+
+/** Hanzi rail: natural CJK vertical orientation, one step dimmer than the English. */
+const ZH_VERTICAL = '[writing-mode:vertical-rl] font-serif-sc text-xs';
+
+type NavEntry = (typeof NAV)[number];
+
+/**
+ * One nav entry. Desktop renders the English stack plus the hanzi rail, vertically
+ * centered against each other; mobile renders the English label only (no room for
+ * the rail). Visible text is the accessible name — no aria-label to override it.
+ */
+function NavLink({
+  item,
+  pathname,
+  variant,
+}: {
+  item: NavEntry;
+  pathname: string;
+  variant: 'desktop' | 'mobile';
+}) {
+  const active = item.href !== '/cv.pdf' && pathname.startsWith(item.href);
+  const enColor = active ? 'text-vermilion-text' : 'text-muted';
+
+  const props = {
+    className:
+      variant === 'desktop'
+        ? `group flex items-center gap-1 ${FOCUS_RING}`
+        : `py-2 -my-2 font-mono-game text-xs tracking-[0.15em] transition-colors hover:text-paper ${FOCUS_RING} ${enColor}`,
     'aria-current': active ? ('page' as const) : undefined,
   };
-}
 
-/** Shared by both breakpoint variants; `extra` carries the layout-specific classes. */
-function NavItems({ pathname, extra }: { pathname: string; extra: string }) {
-  return (
-    <>
-      {NAV.map((item) =>
-        // /cv.pdf is a static asset, not a route — plain anchor, new tab.
-        item.href === '/cv.pdf' ? (
-          <a
-            key={item.href}
-            href={item.href}
-            target="_blank"
-            rel="noopener"
-            aria-label={item.en}
-            {...navLinkProps(pathname, item.href, extra)}
+  const children =
+    variant === 'desktop' ? (
+      <>
+        {item.zh ? (
+          <span
+            lang="zh-Hans"
+            className={`${ZH_VERTICAL} transition-colors group-hover:text-paper ${
+              active ? 'text-vermilion-text' : 'text-faint/70'
+            }`}
           >
             {item.zh}
-          </a>
-        ) : (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-label={item.en}
-            {...navLinkProps(pathname, item.href, extra)}
-          >
-            <span lang={item.lang}>{item.zh}</span>
-          </Link>
-        ),
-      )}
+          </span>
+        ) : null}
+        <span
+          className={`${EN_VERTICAL} transition-colors group-hover:text-paper ${enColor}`}
+        >
+          {item.en}
+        </span>
+      </>
+    ) : (
+      item.en
+    );
+
+  return item.href === '/cv.pdf' ? (
+    <a href={item.href} target="_blank" rel="noopener" {...props}>
+      {children}
+    </a>
+  ) : (
+    <Link href={item.href} {...props}>
+      {children}
+    </Link>
+  );
+}
+
+/** Shared by both breakpoint variants so they cannot drift apart. */
+function NavItems({
+  pathname,
+  variant,
+}: {
+  pathname: string;
+  variant: 'desktop' | 'mobile';
+}) {
+  return (
+    <>
+      {NAV.map((item) => (
+        <NavLink
+          key={item.href}
+          item={item}
+          pathname={pathname}
+          variant={variant}
+        />
+      ))}
     </>
   );
 }
@@ -70,10 +122,7 @@ export default function Spine() {
           贾一茗
         </Link>
         <nav aria-label="Site" className="mt-8 flex flex-col items-center gap-5">
-          <NavItems
-            pathname={pathname}
-            extra="[writing-mode:vertical-rl] [text-orientation:upright]"
-          />
+          <NavItems pathname={pathname} variant="desktop" />
         </nav>
         <Link
           href="/"
@@ -94,7 +143,7 @@ export default function Spine() {
           贾一茗
         </Link>
         <nav aria-label="Site" className="flex gap-3">
-          <NavItems pathname={pathname} extra="py-2 -my-2" />
+          <NavItems pathname={pathname} variant="mobile" />
         </nav>
       </header>
     </>
