@@ -37,7 +37,11 @@ export default function RootLayout({
     <html lang="en" className={notoSerifSC.variable}>
       <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
         <Spine />
-        <main className="flex-1 md:pl-[72px]">{children}</main>
+        {/* flex-col so a page root with flex-1 (the homepage) can fill main's
+            exact height — percentage min-heights don't resolve against a
+            flex-stretched block parent. Other pages' mx-auto roots are
+            unaffected. */}
+        <main className="flex flex-1 flex-col md:pl-[72px]">{children}</main>
         <SiteFooter />
       </body>
     </html>

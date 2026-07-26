@@ -96,7 +96,7 @@ function cellContent(cell: Cell) {
   if (cell.state === 'flagged') {
     // A quiet seal-cream dot marks a flagged cell — a mark, not a symbol.
     return (
-      <span className="block h-2 w-2 rounded-full bg-seal md:h-2.5 md:w-2.5" />
+      <span className="block h-1.5 w-1.5 rounded-full bg-seal md:h-2 md:w-2" />
     );
   }
   if (cell.state !== 'revealed') return null;
