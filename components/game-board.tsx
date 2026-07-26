@@ -479,11 +479,12 @@ export default function GameBoard({
         // gap-0: adjacent unrevealed cells must share an edge with no seam, so
         // a run of them reads as one region (see tileRadius).
         // Loss cue must contrast with the vermilion board face, so the flash
-        // border is seal-cream rather than vermilion-on-vermilion.
-        className={`mt-3 grid gap-0 border ${
+        // is seal-cream rather than vermilion-on-vermilion — drawn as an
+        // outline, not a border, so it stays out of the width math below.
+        className={`mx-auto mt-3 grid gap-0 ${
           shaking
-            ? 'border-seal motion-safe:animate-board-shake'
-            : 'border-transparent'
+            ? 'outline outline-1 outline-seal motion-safe:animate-board-shake'
+            : ''
         }`}
         // Cell type scales with tile width — 38% of one tile (100cqw/cols),
         // clamped so tiny boards stay legible and big tiles don't balloon.
@@ -491,6 +492,11 @@ export default function GameBoard({
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           fontSize: `clamp(13px, ${(38 / cols).toFixed(3)}cqw, 18px)`,
+          // Quantize to whole-pixel tiles: at fluid widths a fractional tile
+          // height slips a device pixel every few rows and the page ink shows
+          // through as dashed seams. Browsers without CSS round() drop this
+          // declaration and merely keep those (rare, cosmetic) seams.
+          width: `calc(round(down, 100cqw / ${cols}, 1px) * ${cols})`,
         }}
       >
         {board.cells.map((cell, i) => {
