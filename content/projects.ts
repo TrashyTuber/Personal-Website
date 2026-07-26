@@ -1,7 +1,8 @@
 export interface Project {
   slug: string;
   title: string;
-  zh: string;
+  /** Optional hanzi accent — currently unused for projects by owner decision. */
+  zh?: string;
   year: string;
   blurb: string;
   tech: string[];
@@ -15,7 +16,6 @@ export const projects: Project[] = [
   {
     slug: 'trajecta',
     title: 'Trajecta',
-    zh: '轨迹',
     year: '2026',
     blurb:
       'An AI college-admissions planning platform — committee-grade application review without the private-consultant price tag.',
@@ -30,7 +30,6 @@ export const projects: Project[] = [
   {
     slug: 'live-coding',
     title: 'Algorithmic Live Coding',
-    zh: '码乐',
     year: '2025',
     blurb:
       'Music performed by writing code in real time — 2nd place at the BitCrush Hackathon; a recording passed 250,000 views.',
@@ -43,7 +42,6 @@ export const projects: Project[] = [
   {
     slug: 'prophet-hacks',
     title: 'Prophet Hacks',
-    zh: '先知',
     year: '2026',
     blurb:
       'An automated prediction-market trading system with a two-stage LLM architecture and fractional-Kelly risk management.',
@@ -56,7 +54,6 @@ export const projects: Project[] = [
   {
     slug: 'patches-infinity',
     title: 'Patches Infinity',
-    zh: '无垠',
     year: '2026',
     blurb: 'A browser puzzle game with an endless procedural generator — playable now.',
     tech: ['React', 'Vite', 'JavaScript'],
@@ -69,7 +66,6 @@ export const projects: Project[] = [
   {
     slug: 'election-model',
     title: 'Election Prediction Model',
-    zh: '预测',
     year: '2023',
     blurb: 'Machine-learning classifiers predicting election outcomes from historical data.',
     tech: ['Python', 'scikit-learn', 'Pandas'],
@@ -80,7 +76,6 @@ export const projects: Project[] = [
   {
     slug: 'midi-controller',
     title: 'Custom MIDI Controller',
-    zh: '音控',
     year: '2022',
     blurb: 'A hardware MIDI interface with low-latency signal processing, built from scratch.',
     tech: ['C++', 'Arduino'],

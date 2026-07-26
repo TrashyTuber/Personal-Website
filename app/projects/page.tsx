@@ -22,13 +22,16 @@ export default function ProjectsPage() {
       </h1>
       <div className="mt-10 flex flex-col gap-3">
         {rows.map((row, r) => (
-          <div key={r} className="flex flex-col gap-3 md:flex-row">
+          <div
+            key={r}
+            className="lattice-row"
+            data-wide={r === 0 ? '' : undefined}
+          >
             {row.map((project, i) => (
               <LatticeFrame
                 key={project.slug}
                 project={project}
                 index={r * 2 + i}
-                wide={r === 0 && i === 0}
               />
             ))}
           </div>

@@ -49,6 +49,49 @@ html {
   color-scheme: dark;
 }
 
+/*
+ * Project lattice rows. The row owns the sizing: hover retunes the row's grid
+ * template, so both frames follow one animation clock — per-card flex-grow
+ * transitions fought each other and could flap near the shared boundary.
+ * data-wide marks the featured row (first frame larger at rest).
+ */
+.lattice-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .lattice-row {
+    grid-template-columns: 1fr 1fr;
+    transition: grid-template-columns 0.3s ease;
+  }
+  .lattice-row[data-wide] {
+    grid-template-columns: 1.6fr 1fr;
+  }
+  .lattice-row:has(> :first-child:hover) {
+    grid-template-columns: 2fr 1fr;
+  }
+  .lattice-row[data-wide]:has(> :first-child:hover) {
+    grid-template-columns: 2.2fr 1fr;
+  }
+  .lattice-row:has(> :last-child:not(:first-child):hover) {
+    grid-template-columns: 1fr 2fr;
+  }
+  .lattice-row[data-wide]:has(> :last-child:not(:first-child):hover) {
+    grid-template-columns: 1fr 1.4fr;
+  }
+  /* A row with a single frame stays a single full-width column. */
+  .lattice-row:has(> :only-child),
+  .lattice-row:has(> :only-child:hover) {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lattice-row {
+    transition: none;
+  }
+}
+
 ::selection {
   background: var(--color-vermilion);
   color: var(--color-seal);

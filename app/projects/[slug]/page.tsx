@@ -35,9 +35,11 @@ export default async function ProjectPage({
       </p>
       <div className="mt-4 flex flex-wrap items-baseline gap-4">
         <h1 className="text-4xl font-light">{project.title}</h1>
-        <span lang="zh-Hans" className="text-lg text-muted">
-          {project.zh}
-        </span>
+        {project.zh && (
+          <span lang="zh-Hans" className="text-lg text-muted">
+            {project.zh}
+          </span>
+        )}
       </div>
       <div className="mt-2 h-px w-24 bg-hairline-2" />
       <p className="mt-6 text-lg leading-relaxed text-paper">{project.blurb}</p>
