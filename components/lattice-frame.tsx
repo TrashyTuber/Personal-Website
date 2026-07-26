@@ -34,7 +34,7 @@ export default function LatticeFrame({
           the corner the way the duilian sits behind the homepage. */}
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute -bottom-6 -right-2 select-none font-mono-game text-[7rem] font-bold leading-none opacity-[0.08] ${ordinal}`}
+        className={`pointer-events-none absolute -bottom-5 -right-3 select-none font-serif-sc text-[7rem] font-light leading-none opacity-[0.1] ${ordinal}`}
       >
         {index + 1}
       </span>

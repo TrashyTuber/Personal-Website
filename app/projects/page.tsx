@@ -48,7 +48,7 @@ export default function ProjectsPage() {
       </h1>
       {/* Dense flow lets later frames backfill gaps the spans leave behind,
           so the mosaic stays packed at any project count. */}
-      <div className="mt-10 grid grid-cols-1 gap-3 md:auto-rows-[minmax(11rem,auto)] md:grid-cols-3 md:[grid-auto-flow:dense]">
+      <div className="mt-10 grid grid-cols-1 gap-3 md:auto-rows-[minmax(8rem,auto)] md:grid-cols-3 md:[grid-auto-flow:dense]">
         {ordered.map((project, i) => (
           <LatticeFrame
             key={project.slug}
