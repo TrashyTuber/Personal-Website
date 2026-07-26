@@ -337,6 +337,9 @@ export default function GameBoard({
     // because nothing else runs after the winning move.
     onStatusChange?.(settled.status);
     if (settled.status === 'won') {
+      // commit only runs from pointer/keyboard handlers, never during render;
+      // the clock read is the point (win timestamp).
+      // eslint-disable-next-line react-hooks/purity
       onWin?.(Date.now() - startedAt.current);
     }
     if (settled.status === 'lost') {
@@ -357,6 +360,9 @@ export default function GameBoard({
       return;
     }
     if (!started) {
+      // handleReveal only runs from pointer/keyboard handlers, never during
+      // render; this stamps the run's start line.
+      // eslint-disable-next-line react-hooks/purity
       startedAt.current = Date.now();
       setStarted(true);
     }
