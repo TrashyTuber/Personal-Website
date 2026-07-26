@@ -27,13 +27,14 @@
   --font-mono-game: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
 
   --animate-board-shake: board-shake 0.45s ease;
-  /* Slow hanging-scroll float for the homepage duilian flanks. */
-  --animate-duilian-drift: duilian-drift 14s ease-in-out infinite alternate;
+  /* Continuous vertical marquee for the homepage duilian flanks. */
+  --animate-duilian-marquee: duilian-marquee 28s linear infinite;
 }
 
-@keyframes duilian-drift {
-  from { transform: translate3d(0, -10px, 0); }
-  to { transform: translate3d(0, 10px, 0); }
+/* The band's two halves are identical, so -50% wraps seamlessly. */
+@keyframes duilian-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -50%, 0); }
 }
 
 @keyframes board-shake {

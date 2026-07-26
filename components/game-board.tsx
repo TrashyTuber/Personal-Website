@@ -94,7 +94,16 @@ function loadFound(persistKey?: string): string[] {
 
 function cellContent(cell: Cell) {
   if (cell.state === 'flagged') {
-    return <span className="text-[12px] text-seal md:text-[14px]">⚑</span>;
+    // 雷 — "mine/thunder", straight out of 扫雷: the flag mark in the site's
+    // own script rather than a generic pennant glyph.
+    return (
+      <span
+        lang="zh-Hans"
+        className="font-serif-sc text-[13px] font-normal text-seal md:text-[15px]"
+      >
+        雷
+      </span>
+    );
   }
   if (cell.state !== 'revealed') return null;
   if (cell.mine) return <span className="text-vermilion">✕</span>;
@@ -270,19 +279,21 @@ export default function GameBoard({
    */
   function settleSections(next: Board): Board {
     if (sections.length === 0) return next;
-    const cells = next.cells.map((c) => ({ ...c }));
+    let settled = next;
     const found: string[] = [];
     for (const s of sections) {
-      if (s.cells.some((i) => cells[i].state === 'revealed')) {
+      if (s.cells.some((i) => settled.cells[i].state === 'revealed')) {
         found.push(s.id);
         for (const i of s.cells) {
-          cells[i].state = 'revealed';
-          // Flagged neighbours are left alone rather than cleared: the flag is
-          // on a safe cell, but it is the player's mark and wiping it silently
-          // is the more destructive choice. A flag left standing simply keeps
-          // that cell unrevealed — no effect beyond the player's own tidying.
-          for (const n of neighbors(next, i)) {
-            if (cells[n].state === 'hidden') cells[n].state = 'revealed';
+          // Opened through the engine, not by flipping state: reveal() flood-
+          // expands any zero it opens, so the clearing can never end on a
+          // revealed 0 that borders hidden terrain (an impossible board state
+          // in minesweeper, and it reads as a rendering bug). Every cell here
+          // is mine-free by construction, so no reveal can lose; reveal also
+          // no-ops on flagged cells, which keeps the player's marks standing.
+          settled = reveal(settled, i);
+          for (const n of neighbors(settled, i)) {
+            settled = reveal(settled, n);
           }
         }
       }
@@ -298,7 +309,7 @@ export default function GameBoard({
     // into state is idempotent, and `found` is rebuilt from scratch each time
     // so it is always the complete list, never a delta.
     onFoundChange?.(found);
-    return { ...next, cells };
+    return settled;
   }
 
   function reset() {
@@ -419,7 +430,10 @@ export default function GameBoard({
       {showStatus && (
         <div className="flex items-center justify-between border-b border-hairline pb-2 font-mono-game text-sm text-muted">
           <span aria-label="mines remaining">
-            ⚑ {String(remaining).padStart(3, '0')}
+            <span lang="zh-Hans" className="font-serif-sc">
+              雷
+            </span>{' '}
+            {String(remaining).padStart(3, '0')}
           </span>
           <span
             lang={titleLang}
@@ -556,7 +570,10 @@ export default function GameBoard({
             flagMode ? 'text-vermilion' : 'text-faint'
           }`}
         >
-          ⚑ flag mode {flagMode ? 'on' : 'off'}
+          <span lang="zh-Hans" className="font-serif-sc">
+            雷
+          </span>{' '}
+          flag mode {flagMode ? 'on' : 'off'}
         </button>
       </div>
     </div>

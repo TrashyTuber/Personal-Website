@@ -130,10 +130,10 @@ describe('GameBoard', () => {
   });
 
   test('finding a section clears its neighbourhood, leaving flags standing', () => {
-    // 5x5, mine-free. Column 2 is flagged into a wall the flood cannot cross
-    // (it only enqueues hidden cells), and the section straddles it: cell 11 is
-    // on the flooded side, cell 13 is not. So everything opened around 13 got
-    // there through settleSections, not through the flood.
+    // 5x5, mine-free. Column 2 is flagged into a wall the click's own flood
+    // cannot cross (it only enqueues hidden cells), and the section straddles
+    // it: cell 11 is on the flooded side, cell 13 is not. Everything opened at
+    // and beyond 13 got there through settleSections' engine reveals.
     const sections = [
       { id: 'music', href: '/music', glyphs: ['音', '乐'], cells: [11, 13] },
     ];
@@ -157,12 +157,15 @@ describe('GameBoard', () => {
     for (const i of [8, 9, 14, 18, 19]) {
       expect(at(i)).toHaveAttribute('data-state', 'revealed');
     }
-    // Outside the neighbourhood and behind the wall: still covered.
+    // The clearing opens through the engine's reveal, so zeros at its edge
+    // flood onward — on this mine-free board the whole right side opens. A
+    // revealed 0 bordering hidden terrain is an impossible board state, and
+    // settling must never manufacture one.
     for (const i of [3, 4, 23, 24]) {
-      expect(at(i)).toHaveAttribute('data-state', 'hidden');
+      expect(at(i)).toHaveAttribute('data-state', 'revealed');
     }
-    // Flagged neighbours of the section keep their flags.
-    for (const i of [7, 12, 17]) {
+    // Every flag survives the settle — reveal() no-ops on flagged cells.
+    for (const i of [2, 7, 12, 17, 22]) {
       expect(at(i)).toHaveAttribute('data-state', 'flagged');
     }
   });

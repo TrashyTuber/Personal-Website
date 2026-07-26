@@ -1,27 +1,27 @@
 /**
- * One hanging column of a couplet: large vertical hanzi with its gloss beneath,
- * floating slowly in place like a scroll hanging in moving air.
+ * One flank of the homepage couplet, as a slow vertical marquee: the line
+ * repeats down the column — 方寸藏雷 · 方寸藏雷 · … — and scrolls continuously,
+ * with the static English gloss pinned beneath. Duilian-inspired ambient
+ * ornament rather than a literal couplet plaque.
  *
- * Pure ornament and pure CSS: the drift is a keyframe loop (the homepage does
- * not scroll, so scroll-linked motion would never fire), gated behind
+ * Pure CSS: the loop is a keyframe translating the doubled content by -50%
+ * (the two halves are identical, so the wrap is seamless), gated behind
  * motion-safe so reduced-motion users get a still column. No client JS.
  */
 
-/**
- * The two flanks float in opposite phase: the left column starts mid-cycle so
- * the pair breathes apart rather than bobbing in unison.
- */
-const PHASE_OFFSET = '-7s';
+/** Repetitions per half; enough to overfill any sane viewport height. */
+const REPEATS = 6;
 
 export interface DuilianProps {
   /**
    * Which flank this column hangs on. Traditional placement puts the 上联 on
-   * the right and the 下联 on the left; here it also sets the float phase.
+   * the right and the 下联 on the left; here it also sets the scroll
+   * direction, so the two bands stream past each other.
    */
   side: 'left' | 'right';
   /** The line itself. */
   hanzi: string;
-  /** English gloss, set below the hanzi in the same vertical flow. */
+  /** English gloss, pinned static below the moving band. */
   gloss: string;
   /** Positioning comes from the caller — the component owns only its own look. */
   className?: string;
@@ -33,26 +33,34 @@ export default function Duilian({
   gloss,
   className = '',
 }: DuilianProps) {
+  // Each half ends with its own separator so the copy seam reads as one more
+  // "· " like every other joint in the band.
+  const half = `${Array.from({ length: REPEATS }, () => hanzi).join(' · ')} · `;
+
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none select-none items-center ${className}`}
+      className={`pointer-events-none select-none flex-col items-center gap-6 overflow-hidden ${className}`}
     >
-      <div
-        className="motion-safe:animate-duilian-drift flex flex-col items-center gap-8"
-        style={side === 'left' ? { animationDelay: PHASE_OFFSET } : undefined}
-      >
-        {/* lang is correct whether or not the flank stays aria-hidden. */}
-        <span
-          lang="zh-Hans"
-          className="font-serif-sc text-7xl font-light leading-none tracking-[0.25em] text-paper/25 [writing-mode:vertical-rl]"
+      <div className="flex-1 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_88%,transparent)]">
+        <div
+          className="motion-safe:animate-duilian-marquee flex flex-col items-center"
+          style={side === 'right' ? { animationDirection: 'reverse' } : undefined}
         >
-          {hanzi}
-        </span>
-        <span className="font-mono-game text-xs tracking-[0.08em] text-faint [writing-mode:vertical-rl]">
-          {gloss}
-        </span>
+          {[0, 1].map((copy) => (
+            <span
+              key={copy}
+              lang="zh-Hans"
+              className="font-serif-sc text-5xl font-light leading-none tracking-[0.25em] text-paper/25 [writing-mode:vertical-rl]"
+            >
+              {half}
+            </span>
+          ))}
+        </div>
       </div>
+      <span className="font-mono-game text-xs tracking-[0.08em] text-faint [writing-mode:vertical-rl]">
+        {gloss}
+      </span>
     </div>
   );
 }
