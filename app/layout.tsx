@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Noto_Serif_SC } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import Spine from '@/components/spine';
 import SiteFooter from '@/components/site-footer';
 import './globals.css';
@@ -43,6 +44,7 @@ export default function RootLayout({
             unaffected. */}
         <main className="flex flex-1 flex-col md:pl-[88px]">{children}</main>
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );
