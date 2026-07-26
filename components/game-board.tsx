@@ -160,7 +160,7 @@ function cellClass(cell: Cell): string {
   // `relative` + `focus-visible:z-10` so the focus ring is not clipped by the
   // neighbouring cells it now touches (the grid has no gap).
   const base =
-    'relative flex aspect-square select-none touch-manipulation items-center justify-center font-mono-game font-bold outline-none [-webkit-touch-callout:none] focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-vermilion';
+    'relative flex aspect-square select-none touch-manipulation items-center justify-center font-mono-game font-medium outline-none [-webkit-touch-callout:none] focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-vermilion';
   // Revealed terrain has no face of its own: the numbers float on the page ink.
   // The hairline-thin inset is a spatial reference only, and is meant to sit
   // just at the edge of visibility.
@@ -490,7 +490,7 @@ export default function GameBoard({
         // The cqw resolves against the wrapper div's container-type above.
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          fontSize: `clamp(13px, ${(38 / cols).toFixed(3)}cqw, 20px)`,
+          fontSize: `clamp(13px, ${(38 / cols).toFixed(3)}cqw, 18px)`,
         }}
       >
         {board.cells.map((cell, i) => {

@@ -31,7 +31,14 @@
   --color-n8: #ffffff;
 
   --font-serif-sc: var(--font-noto-serif-sc, Georgia), Georgia, serif;
-  --font-mono-game: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
+  /*
+   * ui-monospace first (SF Mono on Apple, Cascadia on Win 11): flat, engineered
+   * terminals. Courier New demoted to fallback — its bulbous forms read
+   * toy-like once cell numerals started scaling with tile size.
+   */
+  --font-mono-game: ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+  /* 黑体 for carved-slab hanzi (steles) — system stack, zero font bytes. */
+  --font-hei-sc: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 
   --animate-board-shake: board-shake 0.45s ease;
   /* Newly revealed cell content pops in — the "something happened" beat. */
