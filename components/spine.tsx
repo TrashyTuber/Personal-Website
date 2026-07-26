@@ -4,15 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 /**
- * English-first labels; `zh` is the dim hanzi rail that sits beside the English
- * stack on desktop only. `/cv.pdf` has no hanzi and is a static asset, not a route.
+ * English-first labels; `zh` is the hanzi rail that sits beside the English
+ * stack on desktop only. `/cv.pdf` is a static asset, not a route.
  */
 const NAV = [
   { href: '/projects', en: 'WORK', zh: '项目' },
   { href: '/music', en: 'MUSIC', zh: '音乐' },
   { href: '/about', en: 'ABOUT', zh: '关于' },
   { href: '/minesweeper', en: 'SWEEP', zh: '扫雷' },
-  { href: '/cv.pdf', en: 'CV', zh: undefined },
+  { href: '/cv.pdf', en: 'RESUME', zh: '简历' },
 ];
 
 const FOCUS_RING =
@@ -22,8 +22,9 @@ const FOCUS_RING =
 const EN_VERTICAL =
   '[writing-mode:vertical-rl] [text-orientation:upright] font-mono-game text-xs tracking-[0.15em]';
 
-/** Hanzi rail: natural CJK vertical orientation, one step dimmer than the English. */
-const ZH_VERTICAL = '[writing-mode:vertical-rl] font-serif-sc text-xs';
+/** Hanzi rail: natural CJK vertical orientation. Sized above the English —
+ * CJK glyphs need more pixels than Latin for equal legibility. */
+const ZH_VERTICAL = '[writing-mode:vertical-rl] font-serif-sc text-base';
 
 type NavEntry = (typeof NAV)[number];
 
@@ -59,7 +60,7 @@ function NavLink({
           <span
             lang="zh-Hans"
             className={`${ZH_VERTICAL} transition-colors group-hover:text-paper ${
-              active ? 'text-vermilion-text' : 'text-faint/70'
+              active ? 'text-vermilion-text' : 'text-faint'
             }`}
           >
             {item.zh}
