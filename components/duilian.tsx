@@ -26,11 +26,11 @@ export default function Duilian({ hanzi, gloss, className = '' }: DuilianProps) 
     >
       <span
         lang="zh-Hans"
-        className="font-serif-sc text-8xl font-light leading-none tracking-[0.25em] text-paper/25 [writing-mode:vertical-rl]"
+        className="shrink-0 whitespace-nowrap font-serif-sc text-6xl font-light leading-none tracking-[0.25em] text-paper/25 [writing-mode:vertical-rl]"
       >
         {hanzi}
       </span>
-      <span className="font-mono-game text-xs tracking-[0.08em] text-faint [writing-mode:vertical-rl]">
+      <span className="shrink-0 whitespace-nowrap font-mono-game text-xs tracking-[0.08em] text-faint [writing-mode:vertical-rl]">
         {gloss}
       </span>
     </div>
