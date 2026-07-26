@@ -23,3 +23,4 @@ than the pages. Static copy for the about page is in `app/about/page.tsx`. Asset
 (CV, audio) go in `public/`.
 
 The site spec and the implementation plan are in `docs/superpowers/`.
+# Personal-Website
