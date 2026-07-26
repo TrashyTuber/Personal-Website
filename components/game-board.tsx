@@ -37,8 +37,16 @@ const LONG_PRESS_MS = 450;
  * a latch that a missing click could strand.
  */
 const SUPPRESS_MS = 500;
+/**
+ * How long after a simultaneous-click chord we ignore clicks and contextmenus.
+ * Releasing both buttons leaves behind up to one click and one contextmenu, and
+ * the order varies by platform — so this is a window, not an event count.
+ */
+const CHORD_SUPPRESS_MS = 300;
 /** How long the shake and ✕ stay up before the board resets after a loss. */
 const RESET_DELAY_MS = 900;
+/** Corner radius where the unrevealed mass ends. */
+const TILE_RADIUS = '6px';
 
 export interface GameBoardProps {
   // Board geometry is read once, when the initial board is built. Changing
@@ -105,16 +113,60 @@ function cellContent(cell: Cell) {
   return null;
 }
 
+/**
+ * Whether the cell at (row, col) is part of the unrevealed mass — flagged cells
+ * included, since they keep the same tile face. Off-board reads as "not part of
+ * it", which is what makes the board edge round the mass off.
+ */
+function merges(board: Board, row: number, col: number): boolean {
+  if (row < 0 || row >= board.rows || col < 0 || col >= board.cols) return false;
+  const state = board.cells[row * board.cols + col].state;
+  return state === 'hidden' || state === 'flagged';
+}
+
+/**
+ * Per-corner radius for one tile of the unrevealed mass, so a contiguous run of
+ * tiles reads as a single rounded region rather than a row of boxes: a corner
+ * is rounded only where *both* of the sides meeting there are region edges.
+ *
+ * Diagonal neighbours are deliberately ignored — honouring them would call for
+ * inverted (concave) corners, which no border-radius can draw.
+ */
+function tileRadius(board: Board, index: number): string {
+  const row = Math.floor(index / board.cols);
+  const col = index % board.cols;
+  const up = merges(board, row - 1, col);
+  const down = merges(board, row + 1, col);
+  const left = merges(board, row, col - 1);
+  const right = merges(board, row, col + 1);
+  const corner = (a: boolean, b: boolean) => (a || b ? '0' : TILE_RADIUS);
+  // border-radius order: top-left, top-right, bottom-right, bottom-left.
+  return `${corner(up, left)} ${corner(up, right)} ${corner(down, right)} ${corner(down, left)}`;
+}
+
 function cellClass(cell: Cell): string {
+  // `relative` + `focus-visible:z-10` so the focus ring is not clipped by the
+  // neighbouring cells it now touches (the grid has no gap).
   const base =
-    'flex aspect-square select-none touch-manipulation items-center justify-center rounded-[2px] border font-mono-game text-[13px] font-bold outline-none [-webkit-touch-callout:none] focus-visible:ring-1 focus-visible:ring-vermilion md:text-[15px]';
+    'relative flex aspect-square select-none touch-manipulation items-center justify-center font-mono-game text-[13px] font-bold outline-none [-webkit-touch-callout:none] focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-vermilion md:text-[15px]';
+  // Revealed terrain has no face of its own: the numbers float on the page ink.
+  // The hairline-thin inset is a spatial reference only, and is meant to sit
+  // just at the edge of visibility.
+  const revealed = `${base} shadow-[inset_0_0_0_0.5px_rgba(232,228,220,0.05)]`;
   if (cell.state === 'revealed' && cell.section) {
-    return `${base} border-vermilion/60 bg-surface text-vermilion shadow-[0_0_8px_rgba(194,59,34,0.35)] cursor-pointer`;
+    // Glow on the glyph, not on a box — the boxed tile is what we're shedding.
+    return `${revealed} cursor-pointer text-vermilion [text-shadow:0_0_10px_rgba(194,59,34,0.6)]`;
   }
-  if (cell.state === 'revealed') {
-    return `${base} border-hairline bg-surface`;
-  }
-  return `${base} border-hairline-2 bg-tile transition-transform motion-safe:hover:scale-[0.96]`;
+  if (cell.state === 'revealed') return revealed;
+  // No scale transform on hover: it would tear the merged region apart. A face
+  // lighten reads as the same mass responding instead — as a filter rather than
+  // a second background colour, so the plain and flagged faces lighten by the
+  // same amount without a hand-tuned hover colour for each.
+  const unrevealed = `${base} transition-[filter] hover:brightness-125 motion-reduce:transition-none`;
+  // Flagged tiles sit a shade lighter so a flag reads at a glance on the mass.
+  return cell.state === 'flagged'
+    ? `${unrevealed} bg-hairline`
+    : `${unrevealed} bg-tile`;
 }
 
 /**
@@ -180,6 +232,8 @@ export default function GameBoard({
   } | null>(null);
   /** Timestamp until which pointer events are treated as long-press fallout. */
   const suppressUntil = useRef(0);
+  /** Timestamp until which pointer events are treated as chord fallout. */
+  const chordSuppressUntil = useRef(0);
   /** Set when a hold has flagged, cleared when the finger lifts. */
   const longPressFired = useRef(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -375,7 +429,9 @@ export default function GameBoard({
         role="group"
         aria-label="Minesweeper board"
         onKeyDown={onKeyDown}
-        className={`mt-3 grid gap-[2px] border ${
+        // gap-0: adjacent unrevealed cells must share an edge with no seam, so
+        // a run of them reads as one region (see tileRadius).
+        className={`mt-3 grid gap-0 border ${
           shaking
             ? 'border-vermilion motion-safe:animate-board-shake'
             : 'border-transparent'
@@ -404,10 +460,29 @@ export default function GameBoard({
                 opens ? `${opens} — uncovered, open page` : `cell ${row},${col}`
               }
               className={cellClass(cell)}
+              style={
+                cell.state === 'revealed'
+                  ? undefined
+                  : { borderRadius: tileRadius(board, i) }
+              }
+              onMouseDown={(e) => {
+                // Classic simultaneous chording: both buttons down at once.
+                // `buttons` is the full mask, so this catches either press
+                // order. Middle-click is the one-handed equivalent.
+                if (e.buttons === 3 || e.button === 1) {
+                  e.preventDefault(); // middle-click autoscroll
+                  chordSuppressUntil.current = Date.now() + CHORD_SUPPRESS_MS;
+                  handleChord(i);
+                }
+                // Right-then-left needs no extra care: the contextmenu that
+                // fired on the right press landed on this cell, and a chord
+                // target is revealed — toggleFlag no-ops on revealed cells.
+              }}
               onClick={() => {
                 // Swallow the click a long-press synthesizes. The window
                 // expires on its own, so a dropped click cannot strand it.
                 if (Date.now() < suppressUntil.current) return;
+                if (Date.now() < chordSuppressUntil.current) return;
                 handleReveal(i);
               }}
               onContextMenu={(e) => {
@@ -415,6 +490,8 @@ export default function GameBoard({
                 // Mobile fires contextmenu partway through the same hold we
                 // already flagged on; a second toggle would undo that flag.
                 if (Date.now() < suppressUntil.current) return;
+                // Likewise for the right button we just chorded with.
+                if (Date.now() < chordSuppressUntil.current) return;
                 // If the platform menu beat our timer, this contextmenu *is*
                 // the flag gesture — drop the pending hold so it cannot toggle
                 // the flag straight back off. No suppression window here: on
@@ -422,7 +499,6 @@ export default function GameBoard({
                 cancelLongPress(i);
                 handleFlag(i);
               }}
-              onDoubleClick={() => handleChord(i)}
               onTouchStart={() => {
                 if (longPress.current) clearTimeout(longPress.current.id);
                 suppressUntil.current = 0;

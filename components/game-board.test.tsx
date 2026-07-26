@@ -290,7 +290,7 @@ describe('GameBoard status', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
-  test('double-click chords a satisfied number cell', () => {
+  test('pressing both buttons chords a satisfied number cell', () => {
     seedBoard();
     render(<GameBoard rows={8} cols={8} mineCount={10} showStatus={false} />);
     fireEvent.click(cell(0, 0));
@@ -301,8 +301,20 @@ describe('GameBoard status', () => {
     fireEvent.contextMenu(cell(1, 2));
     expect(cell(0, 2)).toHaveAttribute('data-state', 'hidden');
 
-    fireEvent.doubleClick(cell(0, 1));
+    // buttons === 3: left and right held together.
+    fireEvent.mouseDown(cell(0, 1), { buttons: 3 });
     expect(cell(0, 2)).toHaveAttribute('data-state', 'revealed');
+  });
+
+  test('the right button of a chord does not also flag or reveal', () => {
+    render(<GameBoard rows={3} cols={3} mineCount={0} showStatus={false} />);
+
+    // Releasing both buttons leaves a contextmenu and a click behind; neither
+    // may act on the cell the player was chording.
+    fireEvent.mouseDown(cell(1, 1), { buttons: 3 });
+    fireEvent.contextMenu(cell(1, 1));
+    fireEvent.click(cell(1, 1));
+    expect(cell(1, 1)).toHaveAttribute('data-state', 'hidden');
   });
 
   test('the timer keeps its padded width and the win is announced', () => {

@@ -43,9 +43,11 @@ export default function MinesweeperPage() {
 
       {/*
         Two geometries, one per breakpoint: 16 columns inside 560px is ~20px a
-        cell on a 375px phone, below any sane touch target. Board geometry is
-        read once at mount, so these have to be separate instances — the hidden
-        one is display:none, which also keeps it out of the a11y tree.
+        cell on a 375px phone, below any sane touch target. The mobile board is
+        portrait — fewer columns means wider cells at the same width, and the
+        rows it gains cost nothing on a tall screen. Board geometry is read once
+        at mount, so these have to be separate instances — the hidden one is
+        display:none, which also keeps it out of the a11y tree.
       */}
       <div className="mt-16 hidden flex-col items-center md:flex">
         <p className="mb-6 font-mono-game text-xs tracking-[0.2em] text-faint">
@@ -63,13 +65,13 @@ export default function MinesweeperPage() {
       </div>
       <div className="mt-16 flex flex-col items-center md:hidden">
         <p className="mb-6 font-mono-game text-xs tracking-[0.2em] text-faint">
-          YOUR TURN — 10×10 · 12 MINES
+          YOUR TURN — 9×13 · 14 MINES
         </p>
         <PlayableBoard
           key="mobile"
-          rows={10}
-          cols={10}
-          mineCount={12}
+          rows={13}
+          cols={9}
+          mineCount={14}
           title="扫雷"
           titleLang="zh-Hans"
           className="max-w-[420px]"
