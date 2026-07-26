@@ -41,10 +41,28 @@ const MOBILE_HOME_SECTIONS: SectionSpec[] = [
 
 export default function Home() {
   return (
-    <div className="flex min-h-[85vh] flex-col items-center justify-center px-4 py-10">
+    <div className="relative flex min-h-[85vh] flex-col items-center justify-center px-4 py-10">
       {/* The visible wordmark is a span inside the board's status strip, so the
           page's document outline needs its own heading. */}
       <h1 className="sr-only">Yiming Jia — 贾一茗</h1>
+      {/*
+        The couplet bands, hung the traditional way: 上联 on the right of the
+        board, 下联 on the left. Anchored to the page wrapper, not the board
+        block, so they run the full height of the screen and cut off at the
+        footer. Only from xl up — below that they would crowd the board or
+        reach the spine. Offsets are measured from the centred board's 640px
+        edge, so the gap holds however wide the viewport gets.
+      */}
+      <Duilian
+        side="left"
+        hanzi="谈笑破局"
+        className="absolute inset-y-0 right-[calc(50%+360px)] hidden xl:block"
+      />
+      <Duilian
+        side="right"
+        hanzi="方寸藏雷"
+        className="absolute inset-y-0 left-[calc(50%+360px)] hidden xl:block"
+      />
       {/*
         One geometry per breakpoint. Board geometry is read once at mount, so
         these have to be separate instances — the hidden one is display:none,
@@ -52,27 +70,7 @@ export default function Home() {
         They share a persistKey on purpose: sections found on one orientation
         stay found after a rotate or resize.
       */}
-      <div className="relative hidden w-full flex-col items-center md:flex">
-        {/*
-          The couplet, hung the traditional way: 上联 on the right of the board,
-          下联 on the left. Only from xl up — below that the columns would crowd
-          the board or reach the spine. `inset-y-0` centres them against the
-          board without a transform, which the parallax handler owns; the
-          horizontal offsets are measured from the board's own 640px edge, so
-          the gap holds however wide the viewport gets.
-        */}
-        <Duilian
-          side="left"
-          hanzi="谈笑破局"
-          gloss="the puzzle broken mid-laughter"
-          className="absolute inset-y-0 right-[calc(50%+360px)] hidden xl:flex"
-        />
-        <Duilian
-          side="right"
-          hanzi="方寸藏雷"
-          gloss="thunder hidden in a square inch"
-          className="absolute inset-y-0 left-[calc(50%+360px)] hidden xl:flex"
-        />
+      <div className="hidden w-full flex-col items-center md:flex">
         <HomeBoard
           key="desktop"
           sections={HOME_SECTIONS}

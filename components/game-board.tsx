@@ -94,15 +94,9 @@ function loadFound(persistKey?: string): string[] {
 
 function cellContent(cell: Cell) {
   if (cell.state === 'flagged') {
-    // 雷 — "mine/thunder", straight out of 扫雷: the flag mark in the site's
-    // own script rather than a generic pennant glyph.
+    // A quiet seal-cream dot marks a flagged cell — a mark, not a symbol.
     return (
-      <span
-        lang="zh-Hans"
-        className="font-serif-sc text-[13px] font-normal text-seal md:text-[15px]"
-      >
-        雷
-      </span>
+      <span className="block h-2 w-2 rounded-full bg-seal md:h-2.5 md:w-2.5" />
     );
   }
   if (cell.state !== 'revealed') return null;
@@ -430,9 +424,8 @@ export default function GameBoard({
       {showStatus && (
         <div className="flex items-center justify-between border-b border-hairline pb-2 font-mono-game text-sm text-muted">
           <span aria-label="mines remaining">
-            <span lang="zh-Hans" className="font-serif-sc">
-              雷
-            </span>{' '}
+            {/* bg-current: the dot borrows the surrounding text colour. */}
+            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-current" />
             {String(remaining).padStart(3, '0')}
           </span>
           <span
@@ -570,9 +563,7 @@ export default function GameBoard({
             flagMode ? 'text-vermilion' : 'text-faint'
           }`}
         >
-          <span lang="zh-Hans" className="font-serif-sc">
-            雷
-          </span>{' '}
+          <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-current" />
           flag mode {flagMode ? 'on' : 'off'}
         </button>
       </div>

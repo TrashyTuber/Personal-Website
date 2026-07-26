@@ -4,15 +4,11 @@ import Duilian from './duilian';
 
 /** The positioned flank wraps the band the animation runs on. */
 function band(container: HTMLElement): HTMLElement {
-  return container.querySelector<HTMLElement>(
-    '[aria-hidden="true"] > div > div',
-  )!;
+  return container.querySelector<HTMLElement>('[aria-hidden="true"] > div')!;
 }
 
 function renderColumn(side: 'left' | 'right') {
-  return render(
-    <Duilian side={side} hanzi="方寸藏雷" gloss="thunder in a square inch" />,
-  );
+  return render(<Duilian side={side} hanzi="方寸藏雷" />);
 }
 
 describe('Duilian', () => {
@@ -46,13 +42,5 @@ describe('Duilian', () => {
     const right = band(renderColumn('right').container);
     expect(left.style.animationDirection).toBe('');
     expect(right.style.animationDirection).toBe('reverse');
-  });
-
-  test('the gloss sits outside the moving band, once', () => {
-    const { container } = renderColumn('left');
-    expect(container).toHaveTextContent('thunder in a square inch');
-    const flank = container.querySelector('[aria-hidden="true"]')!;
-    const gloss = flank.lastElementChild!;
-    expect(gloss.textContent).toBe('thunder in a square inch');
   });
 });
