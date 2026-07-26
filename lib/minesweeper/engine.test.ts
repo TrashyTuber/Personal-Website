@@ -290,3 +290,33 @@ describe('minesRemaining', () => {
     expect(minesRemaining(board)).toBe(2);
   });
 });
+
+describe('placeMines section neighborhoods', () => {
+  test('never places mines on section cells or any of their neighbors', () => {
+    // Section tiles carry no visible adjacency number, so any mine next to one
+    // would be invisible to deduction. Excluding the whole neighborhood makes a
+    // section tile's true count zero — informationally inert, like cleared
+    // terrain. Many seeds: a single lucky placement must not pass this.
+    for (let seed = 0; seed < 30; seed++) {
+      const base = createBoard({
+        rows: 8,
+        cols: 12,
+        mineCount: 15,
+        sections: SECTIONS,
+      });
+      const board = placeMines(base, 40, mulberry32(seed));
+      const forbidden = new Set<number>();
+      for (const section of SECTIONS) {
+        for (const index of section.cells) {
+          forbidden.add(index);
+          for (const n of neighbors(board, index)) forbidden.add(n);
+        }
+      }
+      const offenders = board.cells
+        .map((c, i) => (c.mine && forbidden.has(i) ? i : -1))
+        .filter((i) => i >= 0);
+      expect(offenders).toEqual([]);
+      expect(board.mineCount).toBe(15);
+    }
+  });
+});

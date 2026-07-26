@@ -78,7 +78,13 @@ export function placeMines(
 ): Board {
   const forbidden = new Set<number>([safeIndex, ...neighbors(board, safeIndex)]);
   board.cells.forEach((cell, i) => {
-    if (cell.section) forbidden.add(i);
+    if (cell.section) {
+      // Exclude the section cell AND its whole neighborhood: a section tile
+      // shows a glyph instead of its adjacency count, so its true count must
+      // be zero or the tile becomes an information hole in the puzzle.
+      forbidden.add(i);
+      for (const n of neighbors(board, i)) forbidden.add(n);
+    }
   });
   const candidates = board.cells
     .map((_, i) => i)

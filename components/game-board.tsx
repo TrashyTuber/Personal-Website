@@ -93,7 +93,7 @@ function loadFound(persistKey?: string): string[] {
 
 function cellContent(cell: Cell) {
   if (cell.state === 'flagged') {
-    return <span className="text-[12px] text-vermilion md:text-[14px]">⚑</span>;
+    return <span className="text-[12px] text-seal md:text-[14px]">⚑</span>;
   }
   if (cell.state !== 'revealed') return null;
   if (cell.mine) return <span className="text-vermilion">✕</span>;
@@ -165,8 +165,8 @@ function cellClass(cell: Cell): string {
   const unrevealed = `${base} transition-[filter] hover:brightness-125 motion-reduce:transition-none`;
   // Flagged tiles sit a shade lighter so a flag reads at a glance on the mass.
   return cell.state === 'flagged'
-    ? `${unrevealed} bg-hairline`
-    : `${unrevealed} bg-tile`;
+    ? `${unrevealed} bg-[#a03119]`
+    : `${unrevealed} bg-vermilion`;
 }
 
 /**
@@ -431,9 +431,11 @@ export default function GameBoard({
         onKeyDown={onKeyDown}
         // gap-0: adjacent unrevealed cells must share an edge with no seam, so
         // a run of them reads as one region (see tileRadius).
+        // Loss cue must contrast with the vermilion board face, so the flash
+        // border is seal-cream rather than vermilion-on-vermilion.
         className={`mt-3 grid gap-0 border ${
           shaking
-            ? 'border-vermilion motion-safe:animate-board-shake'
+            ? 'border-seal motion-safe:animate-board-shake'
             : 'border-transparent'
         }`}
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
