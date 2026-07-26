@@ -16,17 +16,10 @@ const ORDINAL_CLASSES = [
 export default function LatticeFrame({
   project,
   index,
-  reveal = false,
   className = '',
 }: {
   project: Project;
   index: number;
-  /**
-   * Experiment: the frame starts as a vermilion "unrevealed tile" showing only
-   * its ordinal and title; hovering (or keyboard focus) sweeps it clear like a
-   * board reveal. Pure CSS, md+ only — touch users get the open frame.
-   */
-  reveal?: boolean;
   /** Grid span classes from the page's lattice pattern. */
   className?: string;
 }) {
@@ -69,21 +62,6 @@ export default function LatticeFrame({
           ? `${project.tech.join(' · ')} — ${project.year}`
           : project.year}
       </p>
-      {reveal && (
-        // The unrevealed face. Sits over the content and sweeps away on
-        // hover/focus — browsing the grid reads as clearing the board.
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 hidden items-center justify-center gap-4 bg-vermilion opacity-100 transition-opacity duration-300 group-hover:opacity-0 group-focus-visible:opacity-0 motion-reduce:transition-none md:flex"
-        >
-          <span className="font-mono-game text-2xl font-bold text-seal/90">
-            {index + 1}
-          </span>
-          <span className="font-serif-sc text-xl font-light text-seal">
-            {project.title}
-          </span>
-        </span>
-      )}
     </Link>
   );
 }
