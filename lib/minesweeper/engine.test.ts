@@ -43,21 +43,22 @@ describe('createBoard', () => {
     expect(board.cells[0].state).toBe('hidden');
   });
 
-  test('restores a found section as a cleared patch, not a floating island', () => {
-    // 4x5, section on cells 10 and 11 (row 2, cols 0-1). Their combined
-    // neighbourhood is rows 1-3 x cols 0-2 — mine-free by construction, so
-    // restoring it costs the player nothing and matches what finding the
-    // section looked like at the time.
+  test('restores a found section as just its glyph cells, not a cleared patch', () => {
+    // 4x5, section on cells 10 and 11 (row 2, cols 0-1). A restored board
+    // starts with only the glyphs showing — quiet bookmarks in the mass. The
+    // neighbourhood opens on a mid-game find (settleSections), never on
+    // restore: an owner-decided distinction, do not "fix" one to match the
+    // other.
     const board = createBoard({
       rows: 4, cols: 5, mineCount: 3,
       sections: SECTIONS,
       revealedSectionIds: ['music'],
     });
-    for (const i of [5, 6, 7, 10, 11, 12, 15, 16, 17]) {
+    for (const i of [10, 11]) {
       expect(board.cells[i].state).toBe('revealed');
     }
-    // Row 0, and everything from col 3 out, is untouched.
-    for (const i of [0, 1, 2, 3, 4, 8, 9, 13, 14, 18, 19]) {
+    // Everything else — including the section's own neighbourhood — is hidden.
+    for (const i of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 18, 19]) {
       expect(board.cells[i].state).toBe('hidden');
     }
   });
@@ -202,12 +203,12 @@ describe('reveal with pre-revealed sections', () => {
   });
 
   test('a section spanning a full column DOES wall off the flood fill', () => {
-    // 4x6, mine-free, column 2 (cells 2, 8, 14, 20) pre-revealed — which now
-    // restores columns 1-3 as a cleared band. The flood only enqueues *hidden*
-    // neighbors, so it cannot route through already-revealed terrain:
-    // revealing 0 fills column 0 and stops at the band, leaving columns 4-5
-    // hidden and the game unfinished. This is the constraint app/page.tsx
-    // encodes — no section's neighbourhood may span a full row or column.
+    // 4x6, mine-free, column 2 (cells 2, 8, 14, 20) restored as glyphs only.
+    // The flood only enqueues *hidden* neighbors, so it cannot route through
+    // already-revealed terrain: revealing 0 fills columns 0-1 and stops at the
+    // wall, leaving columns 3-5 hidden and the game unfinished. This is the
+    // constraint app/page.tsx encodes — no section may span a full row or
+    // column (mid-game finds also clear the neighbourhood, widening the wall).
     const sections: SectionSpec[] = [
       {
         id: 'wall',
@@ -222,14 +223,14 @@ describe('reveal with pre-revealed sections', () => {
     });
     board = placeMinesAt(board, []);
     board = reveal(board, 0);
-    for (const i of [0, 6, 12, 18]) {
-      expect(board.cells[i].state).toBe('revealed'); // column 0: flooded
+    for (const i of [0, 1, 6, 7, 12, 13, 18, 19]) {
+      expect(board.cells[i].state).toBe('revealed'); // columns 0-1: flooded
     }
-    for (const i of [1, 2, 3, 7, 8, 9, 13, 14, 15, 19, 20, 21]) {
-      expect(board.cells[i].state).toBe('revealed'); // columns 1-3: the band
+    for (const i of [2, 8, 14, 20]) {
+      expect(board.cells[i].state).toBe('revealed'); // column 2: the wall
     }
-    for (const i of [4, 5, 10, 11, 16, 17, 22, 23]) {
-      expect(board.cells[i].state).toBe('hidden'); // columns 4-5: unreachable
+    for (const i of [3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23]) {
+      expect(board.cells[i].state).toBe('hidden'); // columns 3-5: unreachable
     }
     expect(board.status).toBe('playing');
   });

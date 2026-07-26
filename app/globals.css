@@ -27,6 +27,13 @@
   --font-mono-game: 'Courier New', ui-monospace, Menlo, Consolas, monospace;
 
   --animate-board-shake: board-shake 0.45s ease;
+  /* Slow hanging-scroll float for the homepage duilian flanks. */
+  --animate-duilian-drift: duilian-drift 14s ease-in-out infinite alternate;
+}
+
+@keyframes duilian-drift {
+  from { transform: translate3d(0, -10px, 0); }
+  to { transform: translate3d(0, 10px, 0); }
 }
 
 @keyframes board-shake {

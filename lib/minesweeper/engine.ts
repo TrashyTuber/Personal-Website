@@ -9,12 +9,11 @@ export interface CreateOptions {
 }
 
 /**
- * A fresh board, with any section in `revealedSectionIds` restored as an
- * already-cleared patch: the section's own cells *and* their whole
- * neighbourhood come back revealed. A section's neighbourhood is mine-free by
- * construction (see placeMines), so opening it costs the player nothing — and
- * restoring the cells alone would leave the glyphs as floating islands in the
- * unrevealed mass, which is not what finding them looked like.
+ * A fresh board, with any section in `revealedSectionIds` restored as just its
+ * glyph cells — quiet bookmarks in the unrevealed mass, not pre-cleared
+ * terrain. (Finding a section mid-game DOES open its whole mine-free
+ * neighbourhood — that lives in the component's settleSections — but a
+ * restored board deliberately starts with only the glyphs showing.)
  */
 export function createBoard(opts: CreateOptions): Board {
   const { rows, cols, mineCount, sections = [], revealedSectionIds = [] } = opts;
@@ -44,11 +43,8 @@ export function createBoard(opts: CreateOptions): Board {
     status: 'playing',
     cells,
   };
-  // Built after the Board exists so the neighbourhood can come from `neighbors`
-  // rather than a second, drift-prone copy of the index arithmetic.
   for (const index of restored) {
     cells[index].state = 'revealed';
-    for (const n of neighbors(board, index)) cells[n].state = 'revealed';
   }
   return board;
 }
