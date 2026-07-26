@@ -9,10 +9,10 @@ export default function MusicPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <div className="text-center">
-        <p lang="zh-Hans" className="text-[11px] tracking-[0.6em] text-muted">
+        <p lang="zh-Hans" className="text-sm tracking-[0.6em] text-muted">
           音 乐 目 录
         </p>
-        <h1 className="mt-2 text-2xl font-light">Music Catalog</h1>
+        <h1 className="mt-2 text-4xl font-light">Music Catalog</h1>
         <div className="mx-auto mt-4 h-px w-16 bg-hairline-2" />
       </div>
       <div className="mt-12">
@@ -20,7 +20,7 @@ export default function MusicPage() {
           <MusicRow key={piece.slug} piece={piece} />
         ))}
       </div>
-      <p className="mt-8 text-center font-mono-game text-[10px] text-faint">
+      <p className="mt-8 text-center font-mono-game text-xs text-faint">
         ◉ = recording, score, or notes available
       </p>
     </div>

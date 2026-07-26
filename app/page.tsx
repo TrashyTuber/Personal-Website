@@ -21,8 +21,12 @@ export default function Home() {
       {/* The visible wordmark is a span inside the board's status strip, so the
           page's document outline needs its own heading. */}
       <h1 className="sr-only">Yiming Jia — 贾一茗</h1>
-      <GameBoard sections={HOME_SECTIONS} persistKey="yj-found-sections" />
-      <div className="mt-3 flex w-full max-w-[420px] justify-between font-mono-game text-[10px] text-faint">
+      <GameBoard
+        sections={HOME_SECTIONS}
+        persistKey="yj-found-sections"
+        className="max-w-[640px]"
+      />
+      <div className="mt-3 flex w-full max-w-[640px] justify-between font-mono-game text-xs text-faint">
         <span>click reveal · right-click flag · double-click chord</span>
         <span className="hidden text-muted md:inline">not a sweeper? use the spine ←</span>
       </div>

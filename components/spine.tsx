@@ -17,7 +17,7 @@ const FOCUS_RING =
 function navLinkProps(pathname: string, href: string, extra: string) {
   const active = href !== '/cv.pdf' && pathname.startsWith(href);
   return {
-    className: `${extra} text-xs tracking-[0.35em] transition-colors hover:text-paper ${FOCUS_RING} ${
+    className: `${extra} text-sm tracking-[0.35em] transition-colors hover:text-paper ${FOCUS_RING} ${
       active ? 'text-vermilion-text' : 'text-muted'
     }`,
     'aria-current': active ? ('page' as const) : undefined,
@@ -65,7 +65,7 @@ export default function Spine() {
         <Link
           href="/"
           lang="zh-Hans"
-          className={`text-lg tracking-[0.5em] [writing-mode:vertical-rl] [text-orientation:upright] ${FOCUS_RING}`}
+          className={`text-xl tracking-[0.5em] [writing-mode:vertical-rl] [text-orientation:upright] ${FOCUS_RING}`}
         >
           贾一茗
         </Link>
@@ -78,7 +78,7 @@ export default function Spine() {
         <Link
           href="/"
           aria-label="Home"
-          className={`mt-auto flex h-8 w-8 items-center justify-center rounded-[2px] bg-vermilion text-sm text-seal ${FOCUS_RING}`}
+          className={`mt-auto flex h-9 w-9 items-center justify-center rounded-[2px] bg-vermilion text-base text-seal ${FOCUS_RING}`}
         >
           <span lang="zh-Hans">贾</span>
         </Link>

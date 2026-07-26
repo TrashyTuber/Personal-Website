@@ -78,13 +78,16 @@ function loadFound(persistKey?: string): string[] {
 
 function cellContent(cell: Cell) {
   if (cell.state === 'flagged') {
-    return <span className="text-[10px] text-vermilion">⚑</span>;
+    return <span className="text-[12px] text-vermilion md:text-[14px]">⚑</span>;
   }
   if (cell.state !== 'revealed') return null;
   if (cell.mine) return <span className="text-vermilion">✕</span>;
   if (cell.glyph) {
     return (
-      <span lang="zh-Hans" className="font-serif-sc text-[13px] font-normal">
+      <span
+        lang="zh-Hans"
+        className="font-serif-sc text-[16px] font-normal md:text-[19px]"
+      >
         {cell.glyph}
       </span>
     );
@@ -97,7 +100,7 @@ function cellContent(cell: Cell) {
 
 function cellClass(cell: Cell): string {
   const base =
-    'flex aspect-square select-none touch-manipulation items-center justify-center rounded-[2px] border font-mono-game text-[11px] font-bold outline-none [-webkit-touch-callout:none] focus-visible:ring-1 focus-visible:ring-vermilion';
+    'flex aspect-square select-none touch-manipulation items-center justify-center rounded-[2px] border font-mono-game text-[13px] font-bold outline-none [-webkit-touch-callout:none] focus-visible:ring-1 focus-visible:ring-vermilion md:text-[15px]';
   if (cell.state === 'revealed' && cell.section) {
     return `${base} border-vermilion/60 bg-surface text-vermilion shadow-[0_0_8px_rgba(194,59,34,0.35)] cursor-pointer`;
   }
@@ -328,7 +331,7 @@ export default function GameBoard({
   return (
     <div className={`w-full ${className}`}>
       {showStatus && (
-        <div className="flex items-center justify-between border-b border-hairline pb-2 font-mono-game text-xs text-muted">
+        <div className="flex items-center justify-between border-b border-hairline pb-2 font-mono-game text-sm text-muted">
           <span aria-label="mines remaining">
             ⚑ {String(remaining).padStart(3, '0')}
           </span>
@@ -429,7 +432,7 @@ export default function GameBoard({
           type="button"
           aria-pressed={flagMode}
           onClick={() => setFlagMode((m) => !m)}
-          className={`font-mono-game text-[10px] ${
+          className={`font-mono-game text-xs ${
             flagMode ? 'text-vermilion' : 'text-faint'
           }`}
         >

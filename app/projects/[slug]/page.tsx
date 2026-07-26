@@ -30,7 +30,7 @@ export default async function ProjectPage({
 
   return (
     <article className="mx-auto max-w-2xl px-6 py-16">
-      <p className="font-mono-game text-[10px] tracking-[0.3em] text-faint">
+      <p className="font-mono-game text-xs tracking-[0.3em] text-faint">
         PROJECT — {project.year}
       </p>
       <div className="mt-4 flex flex-wrap items-baseline gap-4">
@@ -42,12 +42,12 @@ export default async function ProjectPage({
       <div className="mt-2 h-px w-24 bg-hairline-2" />
       <p className="mt-6 text-lg leading-relaxed text-paper">{project.blurb}</p>
       {project.body?.map((paragraph, i) => (
-        <p key={i} className="mt-5 leading-loose text-muted">
+        <p key={i} className="mt-5 text-lg leading-loose text-muted">
           {paragraph}
         </p>
       ))}
       {project.tech.length ? (
-        <p className="mt-8 font-mono-game text-xs text-faint">
+        <p className="mt-8 font-mono-game text-sm text-faint">
           {project.tech.join(' · ')}
         </p>
       ) : null}
@@ -59,7 +59,7 @@ export default async function ProjectPage({
               href={link.href}
               target="_blank"
               rel="noopener"
-              className={`font-mono-game text-xs text-vermilion-text transition-colors hover:text-paper ${FOCUS_RING}`}
+              className={`font-mono-game text-sm text-vermilion-text transition-colors hover:text-paper ${FOCUS_RING}`}
             >
               {link.label} <span aria-hidden="true">↗</span>
             </a>

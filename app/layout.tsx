@@ -17,8 +17,9 @@ const description =
   'Yiming Jia — engineer and composer. CS at Northwestern, Composition at Bienen. Projects, music, and minesweeper.';
 
 export const metadata: Metadata = {
-  // TODO: replace with the real domain at deploy
-  metadataBase: new URL('https://personal-website.vercel.app'),
+  // Live deployment. Swap this for the custom domain if one is ever attached —
+  // it is the base every relative OG/canonical URL resolves against.
+  metadataBase: new URL('https://personal-website-steel-nu-27.vercel.app'),
   title: 'Yiming Jia — 贾一茗',
   description,
   openGraph: {

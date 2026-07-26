@@ -28,7 +28,7 @@ export default function PlayableBoard(
     <>
       <GameBoard {...props} onStatusChange={setStatus} />
       <p
-        className={`mt-5 text-center font-mono-game text-[10px] tracking-[0.2em] ${
+        className={`mt-5 text-center font-mono-game text-xs tracking-[0.2em] ${
           status === 'playing' ? 'text-faint' : 'text-vermilion-text'
         }`}
       >

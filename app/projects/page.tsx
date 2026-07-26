@@ -14,9 +14,9 @@ export default function ProjectsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-sm tracking-[0.5em] text-paper">
+      <h1 className="text-lg tracking-[0.5em] text-paper">
         <span lang="zh-Hans">项目</span>{' '}
-        <span className="font-mono-game text-[10px] tracking-normal text-faint">
+        <span className="font-mono-game text-xs tracking-normal text-faint">
           / PROJECTS
         </span>
       </h1>

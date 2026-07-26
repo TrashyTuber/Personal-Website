@@ -29,25 +29,25 @@ const SECTIONS: { zh: string; en: string; body: string[] }[] = [
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-xl px-6 py-16">
-      <h1 className="text-sm tracking-[0.5em] text-paper">
+      <h1 className="text-lg tracking-[0.5em] text-paper">
         <span lang="zh-Hans">关于</span>{' '}
-        <span className="font-mono-game text-[10px] tracking-normal text-faint">
+        <span className="font-mono-game text-xs tracking-normal text-faint">
           / ABOUT
         </span>
       </h1>
       {SECTIONS.map((section) => (
         <section key={section.en} className="mt-16">
           <div className="flex items-baseline gap-3">
-            <h2 lang="zh-Hans" className="text-xl font-light">
+            <h2 lang="zh-Hans" className="text-2xl font-light">
               {section.zh}
             </h2>
-            <span className="font-mono-game text-[10px] tracking-[0.3em] text-faint">
+            <span className="font-mono-game text-xs tracking-[0.3em] text-faint">
               {section.en.toUpperCase()}
             </span>
           </div>
           <div className="mt-3 h-px w-12 bg-hairline-2" />
           {section.body.map((paragraph, i) => (
-            <p key={i} className="mt-5 leading-loose text-muted">
+            <p key={i} className="mt-5 text-lg leading-loose text-muted">
               {paragraph}
             </p>
           ))}

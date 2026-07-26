@@ -22,19 +22,19 @@ export default function LatticeFrame({
       <span className="absolute -left-px -top-px h-2 w-2 border-l-2 border-t-2 border-vermilion" />
       <div className="flex flex-wrap items-baseline gap-3">
         <span
-          className={`font-mono-game text-xs font-bold ${ORDINAL_CLASSES[Math.min(index, 3)]}`}
+          className={`font-mono-game text-sm font-bold ${ORDINAL_CLASSES[Math.min(index, 3)]}`}
         >
           {index + 1}
         </span>
-        <h2 className="text-2xl font-light">{project.title}</h2>
-        <span lang="zh-Hans" className="text-sm text-muted">
+        <h2 className="text-3xl font-light">{project.title}</h2>
+        <span lang="zh-Hans" className="text-base text-muted">
           {project.zh}
         </span>
       </div>
-      <p className="mt-3 max-w-prose text-sm leading-relaxed text-muted">
+      <p className="mt-3 max-w-prose text-base leading-relaxed text-muted">
         {project.blurb}
       </p>
-      <p className="mt-4 font-mono-game text-[10px] text-faint">
+      <p className="mt-4 font-mono-game text-xs text-faint">
         {/* An empty tech list would otherwise render a bare " — 2024". */}
         {project.tech.length
           ? `${project.tech.join(' · ')} — ${project.year}`
