@@ -31,12 +31,14 @@
   --color-n8: #ffffff;
 
   /*
-   * ZCOOL XiaoWei carries both tokens since the 2026-07 typography round
-   * (Noto Serif SC retired — read as stock): -serif-sc is the inherited
-   * body/content voice, -display-sc marks deliberate display sites. Same
-   * face today; the split survives so a future body face is one line.
+   * 2026-07 typography round (Noto Serif SC retired — read as stock):
+   * -serif-sc is the inherited body voice — Spectral takes Latin prose and
+   * hanzi falls through to XiaoWei PER GLYPH, so mixed-script paragraphs
+   * need no markup. -display-sc is XiaoWei outright, for titles and every
+   * deliberate display site (XiaoWei's display Latin tired the owner's
+   * eyes as prose).
    */
-  --font-serif-sc: var(--font-zcool-xiaowei, Georgia), Georgia, serif;
+  --font-serif-sc: var(--font-spectral, Georgia), var(--font-zcool-xiaowei, Georgia), Georgia, serif;
   --font-display-sc: var(--font-zcool-xiaowei, Georgia), Georgia, serif;
   /* Brush kaishu — duilian only (couplets are literal calligraphy). */
   --font-brush-sc: var(--font-ma-shan-zheng, Georgia), Georgia, serif;

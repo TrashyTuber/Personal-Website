@@ -44,7 +44,7 @@ export default function LatticeFrame({
         <span className={`font-mono-game text-sm font-bold ${ordinal}`}>
           {index + 1}
         </span>
-        <h2 className="min-w-0 text-2xl font-light md:text-3xl">
+        <h2 className="min-w-0 font-display-sc text-2xl font-light md:text-3xl">
           {project.title}
         </h2>
         {project.zh && (

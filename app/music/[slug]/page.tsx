@@ -37,7 +37,9 @@ export default async function PiecePage({
       <p className="text-center text-sm tracking-[0.6em] text-muted">
         {piece.instrumentation}
       </p>
-      <h1 className="mt-3 text-center text-3xl font-light">{piece.title}</h1>
+      <h1 className="mt-3 text-center font-display-sc text-3xl font-light">
+        {piece.title}
+      </h1>
       <p className="mt-2 text-center font-mono-game text-sm text-faint">
         {piece.year}
       </p>

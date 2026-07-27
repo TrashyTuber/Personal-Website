@@ -1,13 +1,25 @@
 import type { Metadata } from 'next';
-import { Ma_Shan_Zheng, ZCOOL_XiaoWei } from 'next/font/google';
+import { Ma_Shan_Zheng, Spectral, ZCOOL_XiaoWei } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import Spine from '@/components/spine';
 import SiteFooter from '@/components/site-footer';
 import './globals.css';
 
-// The site face — ZCOOL XiaoWei's carved terminals over Noto's stock forms
-// (owner + outside feedback: the default serif read generic). Since the
-// typography round it carries body AND display duty; Noto is retired.
+// Prose Latin — XiaoWei is a display face and tired the owner's eyes as
+// body text (its unserifed capital I reads as l). Latin-only load; hanzi
+// inside prose falls through the body stack to XiaoWei per glyph.
+const spectral = Spectral({
+  weight: ['300', '400'],
+  subsets: ['latin'],
+  variable: '--font-spectral',
+  display: 'swap',
+  adjustFontFallback: false,
+  fallback: ['Georgia', 'serif'],
+});
+
+// The display face — ZCOOL XiaoWei's carved terminals over Noto's stock
+// forms (owner + outside feedback: the default serif read generic). Carries
+// all hanzi and all display Latin (titles); Noto is retired.
 const zcoolXiaoWei = ZCOOL_XiaoWei({
   weight: '400',
   subsets: ['latin'],
@@ -52,7 +64,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${zcoolXiaoWei.variable} ${maShanZheng.variable}`}
+      className={`${spectral.variable} ${zcoolXiaoWei.variable} ${maShanZheng.variable}`}
     >
       <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
         <Spine />

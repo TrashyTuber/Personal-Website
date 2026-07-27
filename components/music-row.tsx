@@ -4,7 +4,7 @@ import { hasDetail, type MusicPiece } from '@/content/music';
 export default function MusicRow({ piece }: { piece: MusicPiece }) {
   const row = (
     <div className="border-b border-hairline py-4 sm:flex sm:items-baseline sm:gap-4">
-      <span className="text-lg font-light">{piece.title}</span>
+      <span className="font-display-sc text-lg font-light">{piece.title}</span>
       {hasDetail(piece) && (
         <span aria-hidden className="ml-2 text-sm text-vermilion sm:ml-0">
           ◉

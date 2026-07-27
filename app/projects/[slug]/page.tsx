@@ -34,7 +34,7 @@ export default async function ProjectPage({
         PROJECT — {project.year}
       </p>
       <div className="mt-4 flex flex-wrap items-baseline gap-4">
-        <h1 className="text-4xl font-light">{project.title}</h1>
+        <h1 className="font-display-sc text-4xl font-light">{project.title}</h1>
         {project.zh && (
           <span lang="zh-Hans" className="text-lg text-muted">
             {project.zh}
