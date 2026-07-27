@@ -8,10 +8,12 @@ export default function MinesweeperPage() {
   return (
     <div className="py-16">
       <div className="mx-auto max-w-2xl px-6 text-center">
-        <p lang="zh-Hans" className="text-sm tracking-[0.6em] text-muted">
+        <p lang="zh-Hans" className="font-display-sc text-sm tracking-[0.6em] text-muted">
           个 人 最 佳
         </p>
-        <h1 className="mt-2 text-4xl font-light">Personal Bests</h1>
+        <h1 className="mt-3 font-mono-game text-2xl tracking-[0.3em]">
+          PERSONAL BESTS
+        </h1>
         <div className="mx-auto mt-4 h-px w-16 bg-hairline-2" />
       </div>
 

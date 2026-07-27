@@ -113,7 +113,7 @@ function cellContent(cell: Cell) {
       <span
         lang="zh-Hans"
         // 1.26em of the grid's tile-scaled size ≈ 48% of a tile.
-        className="font-serif-sc text-[1.26em] font-normal motion-safe:animate-cell-pop"
+        className="font-display-sc text-[1.26em] font-normal motion-safe:animate-cell-pop"
       >
         {cell.glyph}
       </span>
@@ -453,7 +453,10 @@ export default function GameBoard({
           </span>
           <span
             lang={titleLang}
-            className="font-serif-sc tracking-[0.3em] text-paper"
+            // titleLang is only ever set for hanzi titles (扫雷); Latin titles
+            // (YIMING JIA) take the mono — English display left serif-land in
+            // the typography round.
+            className={`${titleLang ? 'font-display-sc' : 'font-mono-game'} tracking-[0.3em] text-paper`}
           >
             {title}
           </span>

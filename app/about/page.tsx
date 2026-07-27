@@ -10,14 +10,14 @@ export const metadata: Metadata = { title: 'About — Yiming Jia' };
 export default function AboutPage() {
   return (
     <div className="mx-auto w-full max-w-xl px-6 py-16">
-      <h1 className="text-lg tracking-[0.5em] text-paper">
+      <h1 className="font-mono-game text-lg tracking-[0.5em] text-paper">
         ABOUT{' '}
-        <span className="font-serif-sc text-sm tracking-normal text-faint">
-          / <span lang="zh-Hans">关于</span>
+        <span className="text-sm tracking-normal text-faint">
+          / <span lang="zh-Hans" className="font-display-sc">关于</span>
         </span>
       </h1>
       <div className="mt-24 flex flex-col items-center text-center">
-        <p lang="zh-Hans" className="font-serif-sc text-2xl font-light text-muted">
+        <p lang="zh-Hans" className="font-display-sc text-2xl font-light text-muted">
           未完待续
         </p>
         <div className="mt-6 h-px w-12 bg-hairline-2" />

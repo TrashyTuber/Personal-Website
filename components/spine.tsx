@@ -24,7 +24,7 @@ const EN_VERTICAL =
 
 /** Hanzi rail: natural CJK vertical orientation. Sized above the English —
  * CJK glyphs need more pixels than Latin for equal legibility. */
-const ZH_VERTICAL = '[writing-mode:vertical-rl] font-serif-sc text-base';
+const ZH_VERTICAL = '[writing-mode:vertical-rl] font-display-sc text-base';
 
 type NavEntry = (typeof NAV)[number];
 
@@ -118,7 +118,7 @@ export default function Spine() {
         <Link
           href="/"
           lang="zh-Hans"
-          className={`text-xl tracking-[0.5em] [writing-mode:vertical-rl] [text-orientation:upright] ${FOCUS_RING}`}
+          className={`font-display-sc text-xl tracking-[0.5em] [writing-mode:vertical-rl] [text-orientation:upright] ${FOCUS_RING}`}
         >
           贾一茗
         </Link>
@@ -130,7 +130,9 @@ export default function Spine() {
           aria-label="Home"
           className={`mt-auto flex h-9 w-9 items-center justify-center rounded-[2px] bg-vermilion text-base text-seal ${FOCUS_RING}`}
         >
-          <span lang="zh-Hans">贾</span>
+          <span lang="zh-Hans" className="font-display-sc">
+            贾
+          </span>
         </Link>
       </aside>
 
@@ -139,7 +141,7 @@ export default function Spine() {
         <Link
           href="/"
           lang="zh-Hans"
-          className={`tracking-[0.3em] ${FOCUS_RING}`}
+          className={`font-display-sc tracking-[0.3em] ${FOCUS_RING}`}
         >
           贾一茗
         </Link>

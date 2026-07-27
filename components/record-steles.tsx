@@ -40,7 +40,7 @@ export default function RecordSteles({
           >
             <span
               lang="zh-Hans"
-              className={`font-hei-sc text-3xl font-normal leading-none tracking-[0.1em] [writing-mode:vertical-rl] ${
+              className={`font-display-sc text-3xl font-normal leading-none tracking-[0.1em] [writing-mode:vertical-rl] ${
                 active ? 'text-seal' : 'text-paper'
               }`}
             >

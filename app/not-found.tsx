@@ -11,10 +11,12 @@ export const metadata: Metadata = { title: 'Not found — Yiming Jia' };
 export default function NotFound() {
   return (
     <div className="mx-auto min-h-[60vh] max-w-xl px-6 py-16 text-center">
-      <p lang="zh-Hans" className="text-sm tracking-[0.6em] text-muted">
+      <p lang="zh-Hans" className="font-display-sc text-sm tracking-[0.6em] text-muted">
         未 找 到
       </p>
-      <h1 className="mt-2 text-4xl font-light">Page not found</h1>
+      <h1 className="mt-3 font-mono-game text-2xl tracking-[0.3em]">
+        PAGE NOT FOUND
+      </h1>
       <p className="mt-3 font-mono-game text-sm text-faint">
         404 — this tile is empty
       </p>

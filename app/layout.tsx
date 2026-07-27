@@ -1,14 +1,28 @@
 import type { Metadata } from 'next';
-import { Noto_Serif_SC } from 'next/font/google';
+import { Ma_Shan_Zheng, ZCOOL_XiaoWei } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import Spine from '@/components/spine';
 import SiteFooter from '@/components/site-footer';
 import './globals.css';
 
-const notoSerifSC = Noto_Serif_SC({
-  weight: ['300', '400'],
+// The site face — ZCOOL XiaoWei's carved terminals over Noto's stock forms
+// (owner + outside feedback: the default serif read generic). Since the
+// typography round it carries body AND display duty; Noto is retired.
+const zcoolXiaoWei = ZCOOL_XiaoWei({
+  weight: '400',
   subsets: ['latin'],
-  variable: '--font-noto-serif-sc',
+  variable: '--font-zcool-xiaowei',
+  display: 'swap',
+  adjustFontFallback: false,
+  fallback: ['Georgia', 'serif'],
+});
+
+// Brush kaishu, duilian only — couplets are the one element that is
+// literally calligraphy. Trial run; owner reserves judgment.
+const maShanZheng = Ma_Shan_Zheng({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-ma-shan-zheng',
   display: 'swap',
   adjustFontFallback: false,
   fallback: ['Georgia', 'serif'],
@@ -36,7 +50,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={notoSerifSC.variable}>
+    <html
+      lang="en"
+      className={`${zcoolXiaoWei.variable} ${maShanZheng.variable}`}
+    >
       <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
         <Spine />
         {/* flex-col so a page root with flex-1 (the homepage) can fill main's

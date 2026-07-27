@@ -9,10 +9,12 @@ export default function MusicPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-16">
       <div className="text-center">
-        <p lang="zh-Hans" className="text-sm tracking-[0.6em] text-muted">
+        <p lang="zh-Hans" className="font-display-sc text-sm tracking-[0.6em] text-muted">
           音 乐 目 录
         </p>
-        <h1 className="mt-2 text-4xl font-light">Music Catalog</h1>
+        <h1 className="mt-3 font-mono-game text-2xl tracking-[0.3em]">
+          MUSIC CATALOG
+        </h1>
         <div className="mx-auto mt-4 h-px w-16 bg-hairline-2" />
       </div>
       {/* Grouped the concert-program way: sections by force, newest first
@@ -28,7 +30,7 @@ export default function MusicPage() {
               <span className="font-mono-game text-xs tracking-[0.3em] text-faint">
                 {category.name.toUpperCase()}
               </span>
-              <span lang="zh-Hans" className="font-serif-sc text-sm text-faint">
+              <span lang="zh-Hans" className="font-display-sc text-sm text-faint">
                 {category.zh}
               </span>
             </h2>

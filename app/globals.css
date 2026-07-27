@@ -30,15 +30,22 @@
   --color-n7: #f0876b;
   --color-n8: #ffffff;
 
-  --font-serif-sc: var(--font-noto-serif-sc, Georgia), Georgia, serif;
+  /*
+   * ZCOOL XiaoWei carries both tokens since the 2026-07 typography round
+   * (Noto Serif SC retired — read as stock): -serif-sc is the inherited
+   * body/content voice, -display-sc marks deliberate display sites. Same
+   * face today; the split survives so a future body face is one line.
+   */
+  --font-serif-sc: var(--font-zcool-xiaowei, Georgia), Georgia, serif;
+  --font-display-sc: var(--font-zcool-xiaowei, Georgia), Georgia, serif;
+  /* Brush kaishu — duilian only (couplets are literal calligraphy). */
+  --font-brush-sc: var(--font-ma-shan-zheng, Georgia), Georgia, serif;
   /*
    * ui-monospace first (SF Mono on Apple, Cascadia on Win 11): flat, engineered
    * terminals. Courier New demoted to fallback — its bulbous forms read
    * toy-like once cell numerals started scaling with tile size.
    */
   --font-mono-game: ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace;
-  /* 黑体 for carved-slab hanzi (steles) — system stack, zero font bytes. */
-  --font-hei-sc: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 
   --animate-board-shake: board-shake 0.45s ease;
   /* Newly revealed cell content pops in — the "something happened" beat. */

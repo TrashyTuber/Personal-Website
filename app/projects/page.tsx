@@ -40,10 +40,10 @@ export default function ProjectsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-6 py-16">
-      <h1 className="text-lg tracking-[0.5em] text-paper">
+      <h1 className="font-mono-game text-lg tracking-[0.5em] text-paper">
         PROJECTS{' '}
-        <span className="font-serif-sc text-sm tracking-normal text-faint">
-          / <span lang="zh-Hans">项目</span>
+        <span className="text-sm tracking-normal text-faint">
+          / <span lang="zh-Hans" className="font-display-sc">项目</span>
         </span>
       </h1>
       {/* Dense flow lets later frames backfill gaps the spans leave behind,
