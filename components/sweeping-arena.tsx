@@ -11,6 +11,11 @@ import {
   SUB50_TARGET,
 } from '@/content/sweeping';
 import type { GameStatus } from '@/lib/minesweeper/types';
+import {
+  estimateStanding,
+  fitLogNormal,
+  formatStanding,
+} from '@/lib/rank-model';
 
 export interface SweepingArenaProps {
   records: SweepRecord[];
@@ -50,6 +55,21 @@ export default function SweepingArena({
   const record = records.find((r) => r.id === selected) ?? records[0];
   const expert = records.find((r) => r.id === 'expert') ?? records[0];
   const isPlayable = playable.includes(record.id);
+
+  // Modeled minesweeper.online standing for the visitor's win. Fitted per
+  // render from the record's sampled anchors — five points through a linear
+  // regression, far too cheap to memoize.
+  const standingLine =
+    status === 'won' && winMs !== null
+      ? formatStanding(
+          estimateStanding(
+            winMs / 1000,
+            fitLogNormal(record.rankAnchors, record.playerCount),
+            record.playerCount,
+          ),
+          record.playerCount,
+        )
+      : null;
 
   function select(id: DifficultyId) {
     setSelected(id);
@@ -138,10 +158,15 @@ export default function SweepingArena({
         >
           {statusLine}
         </p>
+        {standingLine && (
+          <p className="mt-2 text-center font-mono-game text-xs text-faint">
+            {standingLine}
+          </p>
+        )}
       </div>
 
       <p className="mt-10 text-center font-mono-game text-xs text-faint/70">
-        ranks as of {RANKS_AS_OF}
+        ranks &amp; standing model as of {RANKS_AS_OF}
       </p>
     </div>
   );

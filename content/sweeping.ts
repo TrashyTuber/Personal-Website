@@ -17,6 +17,12 @@ export interface SweepRecord {
   rank: number;
   /** Total ranked players at snapshot time — the percentile denominator. */
   playerCount: number;
+  /**
+   * Hand-sampled (rank, seconds) points from the all-time leaderboard, owner's
+   * record included — anchors for the log-normal standing model
+   * (lib/rank-model.ts). Same snapshot vintage as RANKS_AS_OF.
+   */
+  rankAnchors: [rank: number, seconds: number][];
 }
 
 export type DifficultyId = SweepRecord['id'];
@@ -37,6 +43,13 @@ export const SWEEP_RECORDS: SweepRecord[] = [
     timeSeconds: 2.082,
     rank: 4221,
     playerCount: 5392830,
+    rankAnchors: [
+      [1, 0.132],
+      [10, 0.634],
+      [50, 0.9],
+      [101, 1.012],
+      [4221, 2.082],
+    ],
   },
   {
     id: 'intermediate',
@@ -48,6 +61,13 @@ export const SWEEP_RECORDS: SweepRecord[] = [
     timeSeconds: 14.78,
     rank: 344,
     playerCount: 4015210,
+    rankAnchors: [
+      [1, 7.198],
+      [10, 8.678],
+      [50, 11.112],
+      [101, 12.271],
+      [344, 14.78],
+    ],
   },
   {
     id: 'expert',
@@ -59,6 +79,13 @@ export const SWEEP_RECORDS: SweepRecord[] = [
     timeSeconds: 52.803,
     rank: 320,
     playerCount: 3718430,
+    rankAnchors: [
+      [1, 29.461],
+      [10, 34.956],
+      [50, 42.642],
+      [101, 46.191],
+      [320, 52.803],
+    ],
   },
 ];
 

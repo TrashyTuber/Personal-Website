@@ -159,3 +159,26 @@ Status line (replaces PlayableBoard's LINES):
   footnote if owner asks.
 - Adapted (non-authentic) Intermediate/Expert boards on mobile.
 - On-site leaderboard & visitor-percentile lookup — deferred, separate spec.
+
+## Addendum (2026-07-27): modeled minesweeper.online standing on win
+
+Owner approved building the deferred visitor-percentile compare, static-only
+("model it (clean)" option). On every win, a second status line shows the
+visitor's estimated standing on minesweeper.online's all-time leaderboard:
+`≈ top 47% on minesweeper.online (~#1,700,000 of 4.0M)`.
+
+- Data: 5 hand-sampled (rank, seconds) anchors per difficulty (ranks 1/10/50/
+  101 read from the public ranking pages via ordinary browsing on 2026-07-27,
+  plus the owner's record) stored as `rankAnchors` in content/sweeping.ts.
+  No scraping, no API calls, no runtime traffic to minesweeper.online.
+- Model: `lib/rank-model.ts` — log-normal fit (least squares on
+  probit(rank/N) vs ln seconds), Φ via Abramowitz–Stegun, probit via Acklam.
+  Sanity-checked against community benchmarks (expert median ≈ 5 min,
+  sub-100s expert ≈ top 1%).
+- Honesty rules: every figure carries ≈/~, ranks round to 2 significant
+  figures, sub-1% shows one significant figure, past top-90% the label
+  collapses to "top 90%+" with no rank, and the page footnote reads
+  "ranks & standing model as of july 2026".
+- Rejected: live scraping (ToS + fragility), the site's private WebSocket
+  API for deep pages (gray area — owner chose clean), a full on-site
+  leaderboard (still deferred).
