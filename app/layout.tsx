@@ -3,6 +3,7 @@ import { Ma_Shan_Zheng, Spectral, ZCOOL_XiaoWei } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import Spine from '@/components/spine';
 import SiteFooter from '@/components/site-footer';
+import { SITE_URL } from '@/content/site';
 import './globals.css';
 
 // Prose Latin — XiaoWei is a display face and tired the owner's eyes as
@@ -44,10 +45,9 @@ const description =
   'Yiming Jia — engineer and composer. CS at Northwestern, Composition at Bienen. Projects, music, and minesweeper.';
 
 export const metadata: Metadata = {
-  // The custom domain (attached 2026-07-27; the old vercel.app URL still
-  // aliases here). This is the base every relative OG/canonical URL
-  // resolves against.
-  metadataBase: new URL('https://yimingjia.dev'),
+  // The base every relative OG/canonical URL resolves against. The old
+  // vercel.app URL still aliases the deployment.
+  metadataBase: new URL(SITE_URL),
   title: 'Yiming Jia — 贾一茗',
   description,
   openGraph: {
