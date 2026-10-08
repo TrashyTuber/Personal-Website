@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import Duilian from '@/components/duilian';
 import HomeBoard from '@/components/home-board';
 import type { SectionSpec } from '@/lib/minesweeper/types';
@@ -39,6 +40,16 @@ const MOBILE_HOME_SECTIONS: SectionSpec[] = [
   { id: 'about', href: '/about', label: 'About', glyphs: ['关', '于'], cells: [atM(10, 1), atM(10, 2)] },
 ];
 
+const SKIP_LINKS = [
+  { href: '/projects', label: 'work' },
+  { href: '/music', label: 'music' },
+  { href: '/about', label: 'about' },
+  { href: '/cv.pdf', label: 'resume' },
+];
+
+const SKIP_LINK_CLASS =
+  'text-muted transition-colors hover:text-paper focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vermilion';
+
 export default function Home() {
   return (
     // flex-1: grow to main's exact height (main is a flex column), so the
@@ -52,21 +63,21 @@ export default function Home() {
         The couplet bands, hung the traditional way: 上联 on the right of the
         board, 下联 on the left. Anchored to the page wrapper, not the board
         block, so they run the full height of the screen and cut off at the
-        footer. Only from xl up — below that they would crowd the board or
-        reach the spine. Offsets are measured from the centred board's 640px
+        footer. Only from lg up — below that they would crowd the board or
+        run off the screen. Offsets are measured from the centred board's 640px
         edge, so the gap holds however wide the viewport gets.
       */}
       <Duilian
         side="left"
         hanzi="谈笑破局"
         gloss="the puzzle broken mid-laughter"
-        className="absolute inset-y-0 right-[calc(50%+360px)] hidden xl:flex"
+        className="absolute inset-y-0 right-[calc(50%+360px)] hidden lg:flex"
       />
       <Duilian
         side="right"
         hanzi="方寸藏雷"
         gloss="thunder hidden in a square inch"
-        className="absolute inset-y-0 left-[calc(50%+360px)] hidden xl:flex"
+        className="absolute inset-y-0 left-[calc(50%+360px)] hidden lg:flex"
       />
       {/*
         One geometry per breakpoint. Board geometry is read once at mount, so
@@ -93,9 +104,25 @@ export default function Home() {
           className="max-w-[420px]"
         />
       </div>
-      <div className="mt-3 flex w-full max-w-[640px] justify-between font-mono-game text-xs text-faint">
-        <span>click reveal · right-click flag · left+right chord</span>
-        <span className="hidden text-muted md:inline">not a sweeper? use the spine ←</span>
+      {/* The board is the homepage's only navigation, and "uncovered:" lists
+          only what has been found — so non-players get plain links here. */}
+      <div className="mt-3 flex w-full max-w-[420px] flex-wrap justify-between gap-x-6 gap-y-2 whitespace-nowrap font-mono-game text-xs text-faint md:max-w-[640px]">
+        <span className="hidden md:inline">click reveal · right-click flag · left+right chord</span>
+        <span className="md:hidden">tap reveal · long-press flag</span>
+        <nav aria-label="Site" className="flex gap-3">
+          <span>not a sweeper?</span>
+          {SKIP_LINKS.map((link) =>
+            link.href === '/cv.pdf' ? (
+              <a key={link.href} href={link.href} target="_blank" rel="noopener" className={SKIP_LINK_CLASS}>
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} className={SKIP_LINK_CLASS}>
+                {link.label}
+              </Link>
+            ),
+          )}
+        </nav>
       </div>
     </div>
   );

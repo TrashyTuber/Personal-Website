@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Ma_Shan_Zheng, Spectral, ZCOOL_XiaoWei } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
-import Spine from '@/components/spine';
+import SiteHeader from '@/components/site-header';
 import SiteFooter from '@/components/site-footer';
 import { SITE_URL } from '@/content/site';
 import './globals.css';
@@ -67,12 +67,12 @@ export default function RootLayout({
       className={`${spectral.variable} ${zcoolXiaoWei.variable} ${maShanZheng.variable}`}
     >
       <body className="flex min-h-screen flex-col bg-ink font-serif-sc text-paper antialiased">
-        <Spine />
+        <SiteHeader />
         {/* flex-col so a page root with flex-1 (the homepage) can fill main's
             exact height — percentage min-heights don't resolve against a
             flex-stretched block parent. Other pages' mx-auto roots are
             unaffected. */}
-        <main className="flex flex-1 flex-col md:pl-[88px]">{children}</main>
+        <main className="flex flex-1 flex-col">{children}</main>
         <SiteFooter />
         <Analytics />
       </body>

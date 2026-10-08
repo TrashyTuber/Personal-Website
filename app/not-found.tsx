@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Not found — Yiming Jia' };
 /**
  * Next's built-in 404 ships an unlayered `body { background: #fff }`, which
  * beats Tailwind's layered utilities and leaves a white page against the dark
- * spine. Owning the route keeps the site's ink background and typography.
+ * header. Owning the route keeps the site's ink background and typography.
  */
 export default function NotFound() {
   return (

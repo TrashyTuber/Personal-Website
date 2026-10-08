@@ -27,12 +27,12 @@ export interface SweepingArenaProps {
 /**
  * Board max-widths per difficulty. Intermediate keeps homepage parity (40px
  * tiles at 640px); Beginner goes chunkier; Expert breaks out of the text
- * column but never under the 88px spine + 24px gutters (136px total).
+ * column but keeps the page's 24px gutters (48px total).
  */
 const BOARD_WIDTH: Record<DifficultyId, string> = {
   beginner: 'max-w-[432px]',
   intermediate: 'max-w-[640px]',
-  expert: 'max-w-[min(1140px,calc(100vw-136px))]',
+  expert: 'max-w-[min(1140px,calc(100vw-48px))]',
 };
 
 /**
