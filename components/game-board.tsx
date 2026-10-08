@@ -167,7 +167,7 @@ function cellClass(cell: Cell): string {
   const revealed = `${base} shadow-[inset_0_0_0_0.5px_rgba(232,228,220,0.05)]`;
   if (cell.state === 'revealed' && cell.section) {
     // Glow on the glyph, not on a box — the boxed tile is what we're shedding.
-    return `${revealed} cursor-pointer text-vermilion [text-shadow:0_0_10px_rgba(194,59,34,0.6)]`;
+    return `${revealed} cursor-pointer text-vermilion`;
   }
   if (cell.state === 'revealed') return revealed;
   // No scale transform on hover: it would tear the merged region apart. A face
