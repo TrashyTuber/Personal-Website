@@ -18,13 +18,28 @@ export const projects: Project[] = [
     title: 'Trajecta',
     year: '2026',
     blurb:
-      'An AI college-admissions planning platform — committee-grade application review without the private-consultant price tag.',
-    tech: ['React', 'TypeScript', 'Express', 'Prisma', 'Anthropic API'],
+      'An AI college-admissions planning platform with 100+ active users — committee-grade application review without the private-consultant price tag.',
+    tech: ['React', 'TypeScript', 'Express', 'Supabase', 'Anthropic API'],
     featured: true,
     body: [
-      'Trajecta is a full-stack admissions planning platform I co-founded and lead engineering for: a React/Vite front end over an Express/TypeScript API, Prisma on the data layer, Supabase handling auth. It exists because committee-quality application feedback is mostly locked behind private consultants.',
-      'The core is a multi-agent LLM committee: several simulated admissions readers evaluate an application in parallel, constrained by fixed JSON output schemas and server-side validation — the models argue inside guardrails rather than free-associating. A six-category profile-scoring and college-chancing engine calibrates their outputs against Common Data Set percentiles, correcting the self-report bias that plagues chancing tools.',
+      'Trajecta is a full-stack admissions planning platform I co-founded and lead engineering for, now serving 100+ active users: a React/Vite front end over an Express/TypeScript API on Render, with Supabase for Postgres and auth. It exists because committee-quality application feedback is mostly locked behind private consultants.',
+      'The core is a multi-agent LLM committee: several simulated admissions readers evaluate an application, constrained by fixed JSON output schemas — the models argue inside guardrails rather than free-associating. An eval harness scores it against 100 real admissions outcomes: 82.7% accuracy against a 58% baseline. A six-category chancing engine calibrates against Common Data Set percentiles, correcting the self-report bias that plagues chancing tools.',
       'Documents enter through a PDF import pipeline that strips metadata and enforces schema constraints before anything reaches a model: untrusted uploads are treated as a prompt-injection surface, not just files.',
+      'Around it: GitHub Actions CI (lint, type-check, 78 Vitest test files), Stripe subscription billing, and rate limiting on every LLM call.',
+    ],
+  },
+  {
+    slug: 'melody-harmonizer',
+    title: 'Melody Harmonizer',
+    year: '2026',
+    blurb:
+      'A neural network that harmonizes a melody — one chord per note — with a live demo that plays it back as MIDI and audio.',
+    tech: ['Python', 'PyTorch', 'music21', 'Gradio'],
+    links: [{ label: 'demo', href: 'https://huggingface.co/spaces/Trazhytuber/Melody_Harmonizer' }],
+    body: [
+      'A BiLSTM sequence-labeling model predicts a chord for every melody note, trained on the Nottingham folk dataset. The chord vocabulary is transposition-closed (121 chords), the data is augmented across all 12 keys, and train/test splits are made by song so transposed copies never leak across.',
+      'Benchmarked against a size-matched Transformer encoder over three seeds, the BiLSTM led on every metric: 66.8% exact and 76.8% key-aware functional accuracy on a held-out test set, against a 25% baseline.',
+      'Raw per-note predictions change chords too often, so a learned chord-transition Viterbi decoder smooths them, bringing the chord-change rate from 8% over ground truth to within 5%. It runs as a Gradio app on Hugging Face Spaces with MIDI and audio output.',
     ],
   },
   {
