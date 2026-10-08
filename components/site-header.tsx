@@ -22,7 +22,7 @@ function Seal() {
     <Link
       href="/"
       aria-label="Home"
-      className={`flex h-9 w-9 items-center justify-center rounded-[2px] bg-vermilion text-base text-seal ${FOCUS_RING}`}
+      className={`flex h-7 w-7 items-center justify-center rounded-[2px] bg-vermilion text-sm text-seal ${FOCUS_RING}`}
     >
       <span lang="zh-Hans" className="font-display-sc">
         贾
@@ -39,7 +39,7 @@ export default function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-hairline-2 bg-ink/90 px-4 py-3 backdrop-blur md:px-6">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-hairline-2 bg-ink/90 px-4 py-2 backdrop-blur md:px-6">
       <Seal />
       <nav aria-label="Site" className="flex gap-3 md:gap-8">
         {NAV.map((item) => {
