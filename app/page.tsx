@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import Duilian from '@/components/duilian';
 import HomeBoard from '@/components/home-board';
 import type { SectionSpec } from '@/lib/minesweeper/types';
@@ -39,16 +38,6 @@ const MOBILE_HOME_SECTIONS: SectionSpec[] = [
   { id: 'minesweeper', href: '/minesweeper', label: 'Minesweeper', glyphs: ['扫', '雷'], cells: [atM(7, 5), atM(7, 6)] },
   { id: 'about', href: '/about', label: 'About', glyphs: ['关', '于'], cells: [atM(10, 1), atM(10, 2)] },
 ];
-
-const SKIP_LINKS = [
-  { href: '/projects', label: 'work' },
-  { href: '/music', label: 'music' },
-  { href: '/about', label: 'about' },
-  { href: '/cv.pdf', label: 'resume' },
-];
-
-const SKIP_LINK_CLASS =
-  'text-muted transition-colors hover:text-paper focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vermilion';
 
 export default function Home() {
   return (
@@ -104,25 +93,9 @@ export default function Home() {
           className="max-w-[420px]"
         />
       </div>
-      {/* The board is the homepage's only navigation, and "uncovered:" lists
-          only what has been found — so non-players get plain links here. */}
-      <div className="mt-3 flex w-full max-w-[420px] flex-wrap justify-between gap-x-6 gap-y-2 whitespace-nowrap font-mono-game text-xs text-faint md:max-w-[640px]">
+      <div className="mt-3 flex w-full max-w-[420px] font-mono-game text-xs text-faint md:max-w-[640px]">
         <span className="hidden md:inline">click reveal · right-click flag · left+right chord</span>
         <span className="md:hidden">tap reveal · long-press flag</span>
-        <nav aria-label="Site" className="flex gap-3">
-          <span>not a sweeper?</span>
-          {SKIP_LINKS.map((link) =>
-            link.href === '/cv.pdf' ? (
-              <a key={link.href} href={link.href} target="_blank" rel="noopener" className={SKIP_LINK_CLASS}>
-                {link.label}
-              </a>
-            ) : (
-              <Link key={link.href} href={link.href} className={SKIP_LINK_CLASS}>
-                {link.label}
-              </Link>
-            ),
-          )}
-        </nav>
       </div>
     </div>
   );

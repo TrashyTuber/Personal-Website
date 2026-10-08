@@ -32,20 +32,11 @@ function Seal() {
 }
 
 /**
- * The homepage gets the seal alone — the board is its navigation. Every
- * other page gets a thin bar: seal left, English labels right. On phones the
- * homepage seal sits in flow so it never overlaps the board's status strip.
+ * One bar on every page, homepage included: seal left, English labels right.
+ * Identical geometry everywhere so changing pages never moves the frame.
  */
 export default function SiteHeader() {
   const pathname = usePathname();
-
-  if (pathname === '/') {
-    return (
-      <header className="relative z-20 px-4 pt-4 md:absolute md:left-0 md:top-0 md:p-6">
-        <Seal />
-      </header>
-    );
-  }
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-hairline-2 bg-ink/90 px-4 py-3 backdrop-blur md:px-6">
