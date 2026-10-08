@@ -39,7 +39,7 @@ export default function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between bg-ink px-4 py-3 md:px-6">
+    <header className="sticky top-0 z-20 flex items-center justify-between bg-ink px-4 py-3">
       <Seal />
       <nav aria-label="Site" className="flex gap-3 md:gap-8">
         {NAV.map((item) => {
