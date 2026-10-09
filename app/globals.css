@@ -59,7 +59,7 @@
   to { transform: scale(1); opacity: 1; }
 }
 
-/* PROTOTYPE (projects redesign): specimen redraw fade. */
+/* Projects-index specimen swap / redraw. */
 @keyframes specimen-fade {
   from { opacity: 0; }
   to { opacity: 1; }

@@ -7,6 +7,8 @@ export interface Project {
   blurb: string;
   tech: string[];
   featured?: boolean;
+  /** One headline number for the projects index, taken from the body text. */
+  stat?: { value: string; label: string };
   links?: { label: string; href: string }[];
   /** Case-study paragraphs; a project without a body still gets a detail page showing metadata. */
   body?: string[];
@@ -20,6 +22,7 @@ export const projects: Project[] = [
     blurb:
       'An AI college-admissions planning platform with 100+ active users — committee-grade application review without the private-consultant price tag.',
     tech: ['React', 'TypeScript', 'Express', 'Supabase', 'Anthropic API'],
+    stat: { value: '82.7%', label: 'accuracy on real admissions outcomes · 58% baseline' },
     featured: true,
     body: [
       'Trajecta is a full-stack admissions planning platform I co-founded and lead engineering for, now serving 100+ active users: a React/Vite front end over an Express/TypeScript API on Render, with Supabase for Postgres and auth. It exists because committee-quality application feedback is mostly locked behind private consultants.',
@@ -35,6 +38,7 @@ export const projects: Project[] = [
     blurb:
       'A neural network that harmonizes a melody — one chord per note — with a live demo that plays it back as MIDI and audio.',
     tech: ['Python', 'PyTorch', 'music21', 'Gradio'],
+    stat: { value: '66.8%', label: 'exact chord accuracy · 25% baseline' },
     links: [{ label: 'demo', href: 'https://huggingface.co/spaces/Trazhytuber/Melody_Harmonizer' }],
     body: [
       'A BiLSTM sequence-labeling model predicts a chord for every melody note, trained on the Nottingham folk dataset. The chord vocabulary is transposition-closed (121 chords), the data is augmented across all 12 keys, and train/test splits are made by song so transposed copies never leak across.',
@@ -49,6 +53,7 @@ export const projects: Project[] = [
     blurb:
       'Music performed by writing code in real time — 2nd place at the BitCrush Hackathon; a recording passed 250,000 views.',
     tech: ['JavaScript', 'Strudel'],
+    stat: { value: '250k', label: 'views on one recorded set' },
     body: [
       'Music performed by programming it live: algorithms in Strudel generate and mutate musical patterns in front of the audience, with the code as the score. The set took 2nd place at the BitCrush Hackathon, and a recording surpassed 250,000 views on Instagram.',
       'The follow-up is a four-track EP synthesized entirely from code, produced with an entertainment company.',
@@ -61,6 +66,7 @@ export const projects: Project[] = [
     blurb:
       'An automated prediction-market trading system with a two-stage LLM architecture and fractional-Kelly risk management.',
     tech: ['Python', 'LLMs'],
+    stat: { value: '1,200', label: 'markets in the backtest' },
     body: [
       'Two models share the desk: a scout proposes probabilities, and a judge vetoes overconfident trades. Position sizing is fractional-Kelly with per-market exposure limits, stop-loss, and take-profit rules.',
       'A market classifier routes each question to external data — FRED, Open-Meteo, news, sports odds — and a probability-calibration layer shrinks estimates toward market-implied prices. An offline backtesting harness evaluates strategy calibration against a 1,200-market dataset, reporting per-category Brier scores.',
@@ -72,30 +78,11 @@ export const projects: Project[] = [
     year: '2026',
     blurb: 'A browser puzzle game with an endless procedural generator — playable now.',
     tech: ['React', 'Vite', 'JavaScript'],
+    stat: { value: '∞', label: 'puzzles, every one solvable, none repeated' },
     links: [{ label: 'play', href: 'https://patchesinfinity.com' }],
     body: [
       'A procedural generator partitions grids into non-overlapping rectangles via area-weighted sampling with a constraint-checked retry loop — every puzzle solvable, none repeated.',
       'A seeded clue system, drag-to-draw input with real-time area and shape validation, undo history, and localStorage persistence carry the game feel.',
-    ],
-  },
-  {
-    slug: 'election-model',
-    title: 'Election Prediction Model',
-    year: '2023',
-    blurb: 'Machine-learning classifiers predicting election outcomes from historical data.',
-    tech: ['Python', 'scikit-learn', 'Pandas'],
-    body: [
-      'An ML model predicting election outcomes from historical data — KNN, logistic regression, and random-forest classifiers implemented and compared head-to-head.',
-    ],
-  },
-  {
-    slug: 'midi-controller',
-    title: 'Custom MIDI Controller',
-    year: '2022',
-    blurb: 'A hardware MIDI interface with low-latency signal processing, built from scratch.',
-    tech: ['C++', 'Arduino'],
-    body: [
-      'A MIDI controller hardware interface translating physical inputs into digital musical protocols for DAW integration, engineered around low-latency signal processing.',
     ],
   },
 ];
