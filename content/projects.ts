@@ -22,12 +22,12 @@ export const projects: Project[] = [
     blurb:
       'An AI college-admissions planning platform with 100+ active users — committee-grade application review without the private-consultant price tag.',
     tech: ['React', 'TypeScript', 'Express', 'Supabase', 'Anthropic API'],
-    stat: { value: '82.7%', label: 'accuracy on real admissions outcomes · 58% baseline' },
+    stat: { value: '82.6%', label: 'admit vs. non-admit calls on 201 real outcomes · 65% baseline' },
     featured: true,
     body: [
       'Trajecta is a full-stack admissions planning platform I co-founded and lead engineering for, now serving 100+ active users: a React/Vite front end over an Express/TypeScript API on Render, with Supabase for Postgres and auth. It exists because committee-quality application feedback is mostly locked behind private consultants.',
-      'The core is a multi-agent LLM committee: several simulated admissions readers evaluate an application, constrained by fixed JSON output schemas — the models argue inside guardrails rather than free-associating. An eval harness scores it against 100 real admissions outcomes: 82.7% accuracy against a 58% baseline. A six-category chancing engine calibrates against Common Data Set percentiles, correcting the self-report bias that plagues chancing tools.',
-      'Documents enter through a PDF import pipeline that strips metadata and enforces schema constraints before anything reaches a model: untrusted uploads are treated as a prompt-injection surface, not just files.',
+      'The core is a mock admissions committee. Four LLM officer readers — academic, narrative, impact, context — read the application in turn, each seeing the reports before it, and commit to a verdict on a five-point deny-to-admit scale. Fixed JSON schemas keep them arguing inside guardrails rather than free-associating. A chair reads only their reports, not the application, and decides admit, waitlist, or reject — and says where the room split. An eval harness replays real outcomes from public applicant self-reports: across 201 profile–school pairs, the committee called admit vs. non-admit correctly 82.6% of the time, against a 65% always-reject baseline. Each committee is briefed with the school\'s own Common Data Set factor ratings, and a separate chancing model sorts schools into reach, target, and safety.',
+      'Documents enter through an import pipeline that treats every upload as untrusted: PDFs are checked for type, size, and page count before a model sees them, the extraction is forced into a fixed JSON shape, and everything that comes back is sanitized and capped before it touches the profile. Nothing uploaded is stored.',
       'Around it: GitHub Actions CI (lint, type-check, 78 Vitest test files), Stripe subscription billing, and rate limiting on every LLM call.',
     ],
   },
