@@ -25,33 +25,55 @@ function mulberry32(seed: number) {
   };
 }
 
-/* Trajecta — five readers vote, their lines converge on a verdict, and the
-   verdict lands on a 0–100 scale past the baseline tick. */
+/* Trajecta — the committee room, after the product's own RoomSpectrum:
+   four officer readers (academic, narrative, impact, context) each land a
+   verdict on the five-zone deny → strong-admit spectrum, then the chair,
+   reading only their reports, stamps admit / waitlist / reject. */
+const ZONES = [10, 30, 50, 70, 90]; // deny · lean deny · toss-up · lean admit · strong admit
+const ROOMS = [
+  { reads: [3, 2, 4, 3], chair: 'admit' },
+  { reads: [2, 1, 3, 2], chair: 'waitlist' },
+];
+const OFFICERS = ['AC', 'NR', 'IM', 'CX'];
+
 function Trajecta({ active }: { active: boolean }) {
-  const { tick, still } = useTick(active, 600);
-  const voted = still ? 5 : Math.min(5, tick % 8);
-  const done = voted === 5;
-  const scale = (v: number) => 40 + v * 3.2;
+  const { tick, still } = useTick(active, 650);
+  const room = ROOMS[still ? 0 : Math.floor(tick / 10) % ROOMS.length];
+  const step = still ? 9 : tick % 10;
+  const X = (pct: number) => 40 + pct * 3.2;
+  // Officers on the same verdict are nudged apart, as in the product.
+  const placed = room.reads.map((zone, i) => {
+    const same = room.reads.filter((z, j) => z === zone && j < i).length;
+    const count = room.reads.filter((z) => z === zone).length;
+    return { zone, x: X(ZONES[zone]) + (same - (count - 1) / 2) * 30 };
+  });
   return (
-    <svg viewBox="0 0 400 260" className="h-auto w-full" role="img" aria-label="Five simulated readers converge on a verdict that scores 82.7%, past a 58% baseline">
-      {Array.from({ length: 5 }, (_, i) => {
-        const x = 72 + i * 64;
-        const on = i < voted;
-        return (
-          <g key={i}>
-            <line x1={x} y1={64} x2={200} y2={140} stroke={on ? 'var(--color-muted)' : 'var(--color-hairline-2)'} {...HAIR} style={{ transition: 'stroke 300ms' }} />
-            <circle cx={x} cy={56} r={7} fill={on ? 'var(--color-seal)' : 'var(--color-ink)'} stroke={on ? 'var(--color-seal)' : 'var(--color-hairline-2)'} {...HAIR} style={{ transition: 'fill 300ms' }} />
-          </g>
-        );
-      })}
-      <circle cx={200} cy={140} r={4} fill={done ? 'var(--color-vermilion)' : 'var(--color-hairline-2)'} style={{ transition: 'fill 300ms' }} />
-      <line x1={200} y1={144} x2={scale(82.7)} y2={204} stroke={done ? 'var(--color-vermilion)' : 'transparent'} {...HAIR} style={{ transition: 'stroke 300ms' }} />
-      <line x1={scale(0)} y1={210} x2={scale(100)} y2={210} stroke="var(--color-hairline-2)" {...HAIR} />
-      {[0, 100].map((v) => (
-        <line key={v} x1={scale(v)} y1={205} x2={scale(v)} y2={215} stroke="var(--color-hairline-2)" {...HAIR} />
+    <svg viewBox="0 70 400 160" className="h-auto w-full" role="img" aria-label={`Four officer readers place verdicts on a deny-to-admit spectrum; the chair decides ${room.chair}`}>
+      <line x1={X(0)} y1={130} x2={X(100)} y2={130} stroke="var(--color-hairline-2)" {...HAIR} />
+      {ZONES.map((z) => (
+        <line key={z} x1={X(z)} y1={124} x2={X(z)} y2={136} stroke="var(--color-hairline-2)" {...HAIR} />
       ))}
-      <line x1={scale(58)} y1={202} x2={scale(58)} y2={218} stroke="var(--color-faint)" {...HAIR} />
-      <circle cx={scale(82.7)} cy={210} r={4} fill={done ? 'var(--color-vermilion)' : 'transparent'} style={{ transition: 'fill 300ms' }} />
+      <text x={X(0)} y={162} fill="var(--color-faint)" fontSize={15} fontFamily="var(--font-mono-game)">deny</text>
+      <text x={X(100)} y={162} textAnchor="end" fill="var(--color-faint)" fontSize={15} fontFamily="var(--font-mono-game)">admit</text>
+      {placed.map((p, i) =>
+        i < step ? (
+          <g key={`${room.chair}-${i}`} className="motion-safe:animate-[specimen-fade_400ms_ease-out]">
+            <line x1={p.x} y1={108} x2={p.x} y2={126} stroke="var(--color-hairline-2)" {...HAIR} />
+            <circle cx={p.x} cy={130} r={4} fill="var(--color-paper)" />
+            <text x={p.x} y={100} textAnchor="middle" fill="var(--color-muted)" fontSize={15} fontFamily="var(--font-mono-game)">
+              {OFFICERS[i]}
+            </text>
+          </g>
+        ) : null,
+      )}
+      {step > 4 && (
+        <g key={`chair-${room.chair}`} className="motion-safe:animate-[specimen-fade_500ms_ease-out]">
+          <rect x={146} y={200} width={14} height={14} rx={1} fill="var(--color-vermilion)" />
+          <text x={170} y={212} fill="var(--color-paper)" fontSize={16} fontFamily="var(--font-mono-game)">
+            chair · {room.chair}
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
@@ -165,74 +187,146 @@ function Prophet({ active }: { active: boolean }) {
   );
 }
 
-/* Patches Infinity — an endless supply of fresh partitions, each region
-   carrying its area clue the way the game does. */
-function partition(seed: number) {
-  const rng = mulberry32(seed);
-  const out: { x: number; y: number; w: number; h: number; cx: number; cy: number }[] = [];
-  const split = (x: number, y: number, w: number, h: number) => {
-    const a = w * h;
-    if (a <= 2 || (a <= 8 && rng() < 0.5)) {
-      out.push({ x, y, w, h, cx: x + Math.floor(rng() * w), cy: y + Math.floor(rng() * h) });
-      return;
+/* Patches Infinity — a port of the game's own generator (patches repo,
+   puzzleGenerator.js): a 7×7 medium board, area-weighted rectangle
+   sampling, no 1-cell regions, region count within [n, 1.45n]; ~40% of
+   clues show a shape hint instead of the area. The regions are then drawn
+   in one by one, the way a player solves it, and a fresh board follows. */
+type Region = { r1: number; c1: number; rows: number; cols: number; area: number };
+type Clue = { r: number; c: number; area: number; hint: 'number' | 'square' | 'tall' | 'wide' | 'any' };
+
+const SIZE = 7;
+const BOARD_TICKS = 16; // ≤10 regions drawn, then a held beat
+
+function attemptGenerate(rng: () => number, targetCount: number): Region[] {
+  const grid = Array.from({ length: SIZE }, () => Array<number>(SIZE).fill(-1));
+  const rects: Region[] = [];
+  const targetArea = (SIZE * SIZE) / targetCount;
+  const weight = (area: number) =>
+    area < 2 ? 0 : Math.exp(-0.5 * ((area - targetArea) / (targetArea * 0.75)) ** 2);
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (grid[r][c] !== -1) continue;
+      const cands: { r2: number; c2: number; area: number }[] = [];
+      for (let c2 = c; c2 < SIZE && grid[r][c2] === -1; c2++) {
+        let maxR2 = r;
+        while (maxR2 + 1 < SIZE) {
+          let free = true;
+          for (let cc = c; cc <= c2; cc++) if (grid[maxR2 + 1][cc] !== -1) free = false;
+          if (!free) break;
+          maxR2++;
+        }
+        for (let r2 = r; r2 <= maxR2; r2++) cands.push({ r2, c2, area: (r2 - r + 1) * (c2 - c + 1) });
+      }
+      const weights = cands.map((cd) => weight(cd.area));
+      const total = weights.reduce((a, b) => a + b, 0);
+      let chosen = cands[0];
+      if (total > 0) {
+        let roll = rng() * total;
+        for (let i = 0; i < cands.length; i++) {
+          roll -= weights[i];
+          if (roll <= 0) {
+            chosen = cands[i];
+            break;
+          }
+        }
+      }
+      for (let rr = r; rr <= chosen.r2; rr++)
+        for (let cc = c; cc <= chosen.c2; cc++) grid[rr][cc] = rects.length;
+      rects.push({ r1: r, c1: c, rows: chosen.r2 - r + 1, cols: chosen.c2 - c + 1, area: chosen.area });
     }
-    const vertical = w > h ? true : w < h ? false : rng() < 0.5;
-    const len = vertical ? w : h;
-    const c = 1 + Math.floor(rng() * (len - 1));
-    if (vertical) {
-      split(x, y, c, h);
-      split(x + c, y, w - c, h);
-    } else {
-      split(x, y, w, c);
-      split(x, y + c, w, h - c);
-    }
-  };
-  split(0, 0, 8, 6);
-  return out;
+  }
+  return rects;
 }
 
-const CLUE = ['var(--color-n1)', 'var(--color-n2)', 'var(--color-n3)', 'var(--color-n4)'];
+function generateBoard(seed: number) {
+  const rng = mulberry32(seed);
+  const min = SIZE;
+  const max = Math.round(SIZE * 1.45);
+  const target = Math.round((min + max) / 2);
+  let regions: Region[] = [];
+  for (let attempt = 0; attempt < 120; attempt++) {
+    regions = attemptGenerate(rng, target);
+    if (!regions.some((g) => g.area === 1) && regions.length >= min && regions.length <= max) break;
+  }
+  const clues: Clue[] = regions.map((g) => {
+    const r = g.r1 + Math.floor(rng() * g.rows);
+    const c = g.c1 + Math.floor(rng() * g.cols);
+    const shape = g.rows === g.cols ? 'square' : rng() < 0.3 ? 'any' : g.rows > g.cols ? 'tall' : 'wide';
+    return { r, c, area: g.area, hint: rng() < 0.4 ? shape : 'number' };
+  });
+  return { regions, clues };
+}
+
+/** Area clues wear the board's number pigments, n1…n8 by value. */
+const AREA_INK = ['n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8'].map((n) => `var(--color-${n})`);
+
+function ShapeHint({ hint, x, y }: { hint: Exclude<Clue['hint'], 'number'>; x: number; y: number }) {
+  const props = { fill: 'none', stroke: 'var(--color-muted)', strokeDasharray: '3 2', rx: 2, ...HAIR };
+  if (hint === 'any')
+    return (
+      <g>
+        <rect x={x - 9} y={y - 9} width={18} height={18} {...props} />
+        <rect x={x - 4} y={y - 4} width={8} height={8} rx={1} fill="var(--color-muted)" />
+      </g>
+    );
+  const [w, h] = hint === 'square' ? [16, 16] : hint === 'tall' ? [8, 18] : [18, 8];
+  return <rect x={x - w / 2} y={y - h / 2} width={w} height={h} {...props} />;
+}
 
 function Patches({ active }: { active: boolean }) {
-  const { tick, still } = useTick(active, 2600);
-  const seed = still ? 11 : 11 + tick;
-  const rects = partition(seed);
-  const c = 44;
-  const ox = 24;
-  const oy = 4;
+  const { tick, still } = useTick(active, 340);
+  const board = still ? 0 : Math.floor(tick / BOARD_TICKS);
+  const step = still ? BOARD_TICKS : tick % BOARD_TICKS;
+  const { regions, clues } = generateBoard(23 + board);
+  const c = 34;
+  const ox = (400 - SIZE * c) / 2;
+  const oy = 10;
+  const clueAt = new Set(clues.map((q) => q.r * SIZE + q.c));
   return (
-    <svg viewBox="0 0 400 272" className="h-auto w-full" role="img" aria-label="A grid partitioned into rectangles with area clues, regenerating endlessly">
-      {Array.from({ length: 48 }, (_, i) => (
-        <circle key={i} cx={ox + (i % 8) * c + c / 2} cy={oy + Math.floor(i / 8) * c + c / 2} r={1} fill="var(--color-hairline-2)" />
-      ))}
-      <g key={seed} className="motion-safe:animate-[specimen-fade_600ms_ease-out]">
-        {rects.map((r, i) => (
-          <g key={i}>
-            <rect x={ox + r.x * c + 3} y={oy + r.y * c + 3} width={r.w * c - 6} height={r.h * c - 6} rx={2} fill="none" stroke="var(--color-muted)" strokeOpacity={0.6} {...HAIR} />
-            <rect x={ox + r.cx * c + 3} y={oy + r.cy * c + 3} width={c - 6} height={c - 6} rx={2} fill="var(--color-ink)" />
-            <text
-              x={ox + r.cx * c + c / 2}
-              y={oy + r.cy * c + c / 2 + 6}
-              textAnchor="middle"
-              fill={CLUE[(r.w * r.h) % CLUE.length]}
-              fontSize={17}
-              fontFamily="var(--font-mono-game)"
-            >
-              {r.w * r.h}
-            </text>
-          </g>
-        ))}
-      </g>
+    <svg viewBox="0 0 400 258" className="h-auto w-full" role="img" aria-label="A Patches board: area and shape clues, with regions drawn in one by one">
+      {Array.from({ length: SIZE * SIZE }, (_, i) =>
+        clueAt.has(i) ? null : (
+          <circle key={i} cx={ox + (i % SIZE) * c + c / 2} cy={oy + Math.floor(i / SIZE) * c + c / 2} r={1} fill="var(--color-hairline-2)" />
+        ),
+      )}
+      {regions.map((g, i) =>
+        i < step ? (
+          <rect
+            key={`${board}-${i}`}
+            x={ox + g.c1 * c + 2.5}
+            y={oy + g.r1 * c + 2.5}
+            width={g.cols * c - 5}
+            height={g.rows * c - 5}
+            rx={2}
+            fill="none"
+            stroke="var(--color-muted)"
+            {...HAIR}
+            className="motion-safe:animate-[specimen-fade_400ms_ease-out]"
+          />
+        ) : null,
+      )}
+      {clues.map((q, i) => {
+        const x = ox + q.c * c + c / 2;
+        const y = oy + q.r * c + c / 2;
+        return q.hint === 'number' ? (
+          <text key={i} x={x} y={y + 6} textAnchor="middle" fill={AREA_INK[(q.area - 1) % 8]} fontSize={17} fontFamily="var(--font-mono-game)">
+            {q.area}
+          </text>
+        ) : (
+          <ShapeHint key={i} hint={q.hint} x={x} y={y} />
+        );
+      })}
     </svg>
   );
 }
 
 const SPECIMENS: Record<string, { Draw: (p: { active: boolean }) => React.ReactElement; caption: string }> = {
-  trajecta: { Draw: Trajecta, caption: 'five readers · one verdict · the baseline it clears' },
+  trajecta: { Draw: Trajecta, caption: 'four readers place their verdicts · the chair decides' },
   'melody-harmonizer': { Draw: Harmonizer, caption: 'melody above · one chord per note below' },
   'live-coding': { Draw: LiveCoding, caption: 'the score is the code' },
   'prophet-hacks': { Draw: Prophet, caption: 'predicted vs. observed · the judge strikes the overconfident' },
-  'patches-infinity': { Draw: Patches, caption: 'a fresh solvable board every few seconds' },
+  'patches-infinity': { Draw: Patches, caption: 'the real generator · a fresh 7×7 board, solved region by region' },
 };
 
 export function hasSpecimen(slug: string) {
