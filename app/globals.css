@@ -59,6 +59,12 @@
   to { transform: scale(1); opacity: 1; }
 }
 
+/* PROTOTYPE (projects redesign): specimen redraw fade. */
+@keyframes specimen-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes board-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-6px); }
