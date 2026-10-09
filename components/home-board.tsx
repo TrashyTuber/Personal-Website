@@ -28,23 +28,28 @@ export default function HomeBoard(
     <>
       <GameBoard {...props} onFoundChange={setFound} />
       {/* Width comes from the caller's board className so the cue can never
-          drift out of alignment with the grid it belongs to. */}
-      {uncovered.length > 0 && (
-        <p
-          className={`mt-3 flex w-full flex-wrap items-baseline gap-x-4 gap-y-1 font-mono-game text-xs ${props.className ?? ''}`}
-        >
-          <span className="text-faint">uncovered:</span>
-          {uncovered.map((section) => (
-            <Link
-              key={section.id}
-              href={section.href}
-              className={`text-vermilion-text transition-colors hover:text-paper ${FOCUS_RING}`}
-            >
-              {section.label ?? section.id} →
-            </Link>
-          ))}
-        </p>
-      )}
+          drift out of alignment with the grid it belongs to. Always rendered,
+          with its height reserved (two lines on phones, where all four links
+          wrap), so the first find doesn't shift the vertically centred board. */}
+      <p
+        aria-hidden={uncovered.length === 0 || undefined}
+        className={`mt-3 flex min-h-9 w-full flex-wrap content-start items-baseline gap-x-4 gap-y-1 font-mono-game text-xs md:min-h-4 ${props.className ?? ''}`}
+      >
+        {uncovered.length > 0 && (
+          <>
+            <span className="text-faint">uncovered:</span>
+            {uncovered.map((section) => (
+              <Link
+                key={section.id}
+                href={section.href}
+                className={`text-vermilion-text transition-colors hover:text-paper ${FOCUS_RING}`}
+              >
+                {section.label ?? section.id} →
+              </Link>
+            ))}
+          </>
+        )}
+      </p>
     </>
   );
 }
