@@ -8,7 +8,8 @@ const FOCUS_RING =
   'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vermilion';
 
 /**
- * GameBoard plus an English cue for whatever has been uncovered. A found
+ * GameBoard plus its rules line and an English cue for whatever has been
+ * uncovered. A found
  * section announces itself only as hanzi on the tiles (音乐, 关于…), which tells
  * a non-Chinese reader nothing about where the tile leads; this names each one
  * in English and repeats it as a plain link.
@@ -27,6 +28,13 @@ export default function HomeBoard(
   return (
     <>
       <GameBoard {...props} onFoundChange={setFound} />
+      {/* The rules sit directly under the board; the uncovered cue goes below
+          them. Each HomeBoard instance lives inside a breakpoint-hidden
+          wrapper, so both phrasings render and CSS picks one. */}
+      <p className={`mt-3 w-full font-mono-game text-xs text-faint ${props.className ?? ''}`}>
+        <span className="hidden md:inline">click reveal · right-click flag · left+right chord</span>
+        <span className="md:hidden">tap reveal · long-press flag</span>
+      </p>
       {/* Width comes from the caller's board className so the cue can never
           drift out of alignment with the grid it belongs to. Always rendered,
           with its height reserved (two lines on phones, where all four links

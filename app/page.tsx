@@ -93,10 +93,6 @@ export default function Home() {
           className="max-w-[420px]"
         />
       </div>
-      <div className="mt-3 flex w-full max-w-[420px] font-mono-game text-xs text-faint md:max-w-[640px]">
-        <span className="hidden md:inline">click reveal · right-click flag · left+right chord</span>
-        <span className="md:hidden">tap reveal · long-press flag</span>
-      </div>
     </div>
   );
 }
