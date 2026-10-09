@@ -47,6 +47,10 @@ function Trajecta({ active }: { active: boolean }) {
     const count = room.reads.filter((z) => z === zone).length;
     return { zone, x: X(ZONES[zone]) + (same - (count - 1) / 2) * 30 };
   });
+  // Seal + label centered as one unit on the spectrum's midpoint; mono
+  // glyphs advance 0.6em, so the label's width is known without measuring.
+  const chairLabel = `chair · ${room.chair}`;
+  const chairX = 200 - (14 + 10 + chairLabel.length * 16 * 0.6) / 2;
   return (
     <svg viewBox="0 70 400 160" className="h-auto w-full" role="img" aria-label={`Four officer readers place verdicts on a deny-to-admit spectrum; the chair decides ${room.chair}`}>
       <line x1={X(0)} y1={130} x2={X(100)} y2={130} stroke="var(--color-hairline-2)" {...HAIR} />
@@ -68,9 +72,9 @@ function Trajecta({ active }: { active: boolean }) {
       )}
       {step > 4 && (
         <g key={`chair-${room.chair}`} className="motion-safe:animate-[specimen-fade_500ms_ease-out]">
-          <rect x={146} y={200} width={14} height={14} rx={1} fill="var(--color-vermilion)" />
-          <text x={170} y={212} fill="var(--color-paper)" fontSize={16} fontFamily="var(--font-mono-game)">
-            chair · {room.chair}
+          <rect x={chairX} y={200} width={14} height={14} rx={1} fill="var(--color-vermilion)" />
+          <text x={chairX + 24} y={212} fill="var(--color-paper)" fontSize={16} fontFamily="var(--font-mono-game)">
+            {chairLabel}
           </text>
         </g>
       )}
@@ -127,21 +131,25 @@ function Harmonizer({ active }: { active: boolean }) {
 }
 
 /* Live coding — the score is code, typed in front of you. */
-const CODE = `setcps(0.6)
-stack(
-  s("bd*2 [~ bd] sd ~"),
-  note("<c3 eb3 g3 bb2>*4")
-    .s("sawtooth")
-    .lpf(sine.range(300, 2200).slow(8)),
-  s("hh*8").gain(perlin.range(.3, .7))
-)`;
+// An excerpt from one of Yiming's own sets (lightly condensed).
+const CODE = `setcpm(148/4)
+const chordnotes = [
+  "[eb3,g3,bb3,d4]", "[f#3,c4,d4,a4]",
+  "[g3,d4,f4,bb4]", "[f3,c4,d4,a4]",
+  "[g3,a3,d4,f4]"
+]
+$Chords: note(pick(chordnotes,
+    "<0 1 2 [3 4]>"))
+  .struct("[x -]*4").s("supersaw")
+  .lpf(slider(5000, 1000, 5000))
+  .release(.6).decay(.75)`;
 
 function LiveCoding({ active }: { active: boolean }) {
   const { tick, still } = useTick(active, 45);
   const cycle = CODE.length + 40; // hold the finished pattern for a beat
   const shown = still ? CODE.length : Math.min(CODE.length, (tick * 2) % cycle);
   return (
-    <div role="img" aria-label="A Strudel live-coding pattern being typed" className="font-mono-game text-xs leading-6 sm:text-[13px]">
+    <div role="img" aria-label="A Strudel live-coding pattern being typed" className="font-mono-game text-xs leading-6">
       <pre className="whitespace-pre-wrap break-words text-muted">
         {CODE.slice(0, shown)}
         <span className="ml-px inline-block h-3.5 w-px translate-y-0.5 bg-vermilion" />
@@ -150,15 +158,19 @@ function LiveCoding({ active }: { active: boolean }) {
   );
 }
 
-/* Prophet Hacks — a calibration plot; the judge strikes the overconfident
-   calls at the extremes. */
+/* Prophet Hacks — a calibration plot. Most of the scout's calls sit near
+   the diagonal; the few that land far off it are the overconfident ones,
+   and the judge strikes them a beat after they appear. */
+const OFF_DIAGONAL = new Set([3, 8, 11, 15]);
+
 function Prophet({ active }: { active: boolean }) {
   const { tick, still } = useTick(active, 380);
   const rng = mulberry32(7);
   const pts = Array.from({ length: 18 }, (_, i) => {
     const p = 0.05 + (i / 17) * 0.9;
-    const o = Math.min(0.97, Math.max(0.03, p + (rng() - 0.5) * 0.16));
-    const vetoed = (p < 0.12 || p > 0.88) && rng() < 0.9;
+    const vetoed = OFF_DIAGONAL.has(i);
+    const miss = vetoed ? (p < 0.5 ? 1 : -1) * (0.24 + rng() * 0.1) : (rng() - 0.5) * 0.12;
+    const o = Math.min(0.97, Math.max(0.03, p + miss));
     return { p, o, vetoed };
   });
   const shown = still ? pts.length + 3 : tick % (pts.length + 8);
@@ -258,16 +270,44 @@ function generateBoard(seed: number) {
   return { regions, clues };
 }
 
-/** Area clues wear the board's number pigments, n1…n8 by value. */
-const AREA_INK = ['n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8'].map((n) => `var(--color-${n})`);
+/**
+ * Like the game's per-region pastels, each region and its clue share one
+ * pigment — the board's coloured counts (the near-white n4/n8 sit out).
+ */
+const REGION_INK = ['n1', 'n2', 'n3', 'n5', 'n6', 'n7'].map((n) => `var(--color-${n})`);
 
-function ShapeHint({ hint, x, y }: { hint: Exclude<Clue['hint'], 'number'>; x: number; y: number }) {
-  const props = { fill: 'none', stroke: 'var(--color-muted)', strokeDasharray: '3 2', rx: 2, ...HAIR };
+/** Greedy colouring: no two touching regions share a pigment. */
+function inkRegions(regions: Region[], offset: number): string[] {
+  const owner: number[] = [];
+  regions.forEach((g, i) => {
+    for (let r = g.r1; r < g.r1 + g.rows; r++)
+      for (let c = g.c1; c < g.c1 + g.cols; c++) owner[r * SIZE + c] = i;
+  });
+  const picked: number[] = [];
+  regions.forEach((g, i) => {
+    const taken = new Set<number>();
+    for (let r = g.r1 - 1; r <= g.r1 + g.rows; r++)
+      for (let c = g.c1 - 1; c <= g.c1 + g.cols; c++) {
+        if (r < 0 || c < 0 || r >= SIZE || c >= SIZE) continue;
+        const j = owner[r * SIZE + c];
+        if (j !== i && picked[j] !== undefined) taken.add(picked[j]);
+      }
+    // A big region can touch every pigment; then it just keeps its default.
+    const start = (i + offset) % REGION_INK.length;
+    let k = start;
+    for (let n = 0; n < REGION_INK.length && taken.has(k); n++) k = (start + n + 1) % REGION_INK.length;
+    picked[i] = taken.has(k) ? start : k;
+  });
+  return picked.map((k) => REGION_INK[k]);
+}
+
+function ShapeHint({ hint, x, y, ink }: { hint: Exclude<Clue['hint'], 'number'>; x: number; y: number; ink: string }) {
+  const props = { fill: 'none', stroke: ink, strokeDasharray: '3 2', rx: 2, ...HAIR };
   if (hint === 'any')
     return (
       <g>
         <rect x={x - 9} y={y - 9} width={18} height={18} {...props} />
-        <rect x={x - 4} y={y - 4} width={8} height={8} rx={1} fill="var(--color-muted)" />
+        <rect x={x - 4} y={y - 4} width={8} height={8} rx={1} fill={ink} />
       </g>
     );
   const [w, h] = hint === 'square' ? [16, 16] : hint === 'tall' ? [8, 18] : [18, 8];
@@ -283,6 +323,7 @@ function Patches({ active }: { active: boolean }) {
   const ox = (400 - SIZE * c) / 2;
   const oy = 10;
   const clueAt = new Set(clues.map((q) => q.r * SIZE + q.c));
+  const inks = inkRegions(regions, board);
   return (
     <svg viewBox="0 0 400 258" className="h-auto w-full" role="img" aria-label="A Patches board: area and shape clues, with regions drawn in one by one">
       {Array.from({ length: SIZE * SIZE }, (_, i) =>
@@ -300,7 +341,8 @@ function Patches({ active }: { active: boolean }) {
             height={g.rows * c - 5}
             rx={2}
             fill="none"
-            stroke="var(--color-muted)"
+            stroke={inks[i]}
+            strokeOpacity={0.8}
             {...HAIR}
             className="motion-safe:animate-[specimen-fade_400ms_ease-out]"
           />
@@ -309,12 +351,13 @@ function Patches({ active }: { active: boolean }) {
       {clues.map((q, i) => {
         const x = ox + q.c * c + c / 2;
         const y = oy + q.r * c + c / 2;
+        const ink = inks[i]; // clue i belongs to region i
         return q.hint === 'number' ? (
-          <text key={i} x={x} y={y + 6} textAnchor="middle" fill={AREA_INK[(q.area - 1) % 8]} fontSize={17} fontFamily="var(--font-mono-game)">
+          <text key={i} x={x} y={y + 6} textAnchor="middle" fill={ink} fontSize={17} fontFamily="var(--font-mono-game)">
             {q.area}
           </text>
         ) : (
-          <ShapeHint key={i} hint={q.hint} x={x} y={y} />
+          <ShapeHint key={i} hint={q.hint} x={x} y={y} ink={ink} />
         );
       })}
     </svg>
