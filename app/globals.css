@@ -82,3 +82,41 @@ html {
   background: var(--color-vermilion);
   color: var(--color-seal);
 }
+
+/*
+ * Cursors are plain CSS images, not a JS follower: the OS draws them, so
+ * they never lag the pointer (a speed player feels one frame). The cursor
+ * over the board's vermilion mass is never vermilion-bodied (it would
+ * vanish); the vermilion pointer only lands on ink, cream-outlined. Hotspots are the arrow tip and the centre between the 「」 corners.
+ */
+:root {
+  --cursor-arrow: url('/cursors/arrow.svg') 1 1, default;
+  --cursor-aim: url('/cursors/aim.svg') 6 6, default;
+  /* Same arrow, same hotspot, inked in full: clickable = the seal pressed. */
+  --cursor-point: url('/cursors/point.svg') 1 1, pointer;
+}
+
+@layer base {
+  html,
+  button:disabled {
+    cursor: var(--cursor-arrow);
+  }
+  a:any-link,
+  button:enabled,
+  summary,
+  label[for] {
+    cursor: var(--cursor-point);
+  }
+  /* An inherited image cursor would hide the I-beam over prose. */
+  :where(p, li, h1, h2, h3, h4, blockquote, figcaption, dt, dd, input, textarea) {
+    cursor: text;
+  }
+}
+
+@utility cursor-aim {
+  cursor: var(--cursor-aim);
+}
+
+@utility cursor-point {
+  cursor: var(--cursor-point);
+}

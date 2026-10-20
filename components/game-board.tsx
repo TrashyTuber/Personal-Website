@@ -180,14 +180,15 @@ function cellClass(cell: Cell, pressed: boolean): string {
   const revealed = `${base} shadow-[inset_0_0_0_0.5px_rgba(232,228,220,0.05)]`;
   if (cell.state === 'revealed' && cell.section) {
     // Glow on the glyph, not on a box — the boxed tile is what we're shedding.
-    return `${revealed} cursor-pointer text-vermilion`;
+    return `${revealed} cursor-point text-vermilion`;
   }
-  if (cell.state === 'revealed') return revealed;
+  // Everything else on the board is chosen, not followed: 「」 corner brackets.
+  if (cell.state === 'revealed') return `${revealed} cursor-aim`;
   // No scale transform on hover: it would tear the merged region apart. A face
   // lighten reads as the same mass responding instead — as a filter rather than
   // a second background colour, so the plain and flagged faces lighten by the
   // same amount without a hand-tuned hover colour for each.
-  const unrevealed = `${base} transition-[filter] hover:brightness-125 motion-reduce:transition-none active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] ${
+  const unrevealed = `${base} cursor-aim transition-[filter] hover:brightness-125 motion-reduce:transition-none active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] ${
     pressed && cell.state === 'hidden' ? PRESSED : ''
   }`;
   // Flagged tiles sit a shade lighter so a flag reads at a glance on the mass.
