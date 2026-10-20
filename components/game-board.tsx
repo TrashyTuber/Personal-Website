@@ -164,7 +164,10 @@ function tileRadius(board: Board, index: number): string {
  * hidden tiles around the pointer sink, so the player sees which 3×3 the chord
  * covers — and, when a chord no-ops on a wrong flag count, where it looked.
  */
-const PRESSED = 'brightness-[0.8] shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)]';
+//
+// Darken only, no inset shadow: a shadow is drawn per tile, which seams the
+// 3×3 into nine boxes. A filter on gap-0 tiles reads as one dimmed patch.
+const PRESSED = 'brightness-[0.8]';
 
 function cellClass(cell: Cell, pressed: boolean): string {
   // `relative` + `focus-visible:z-10` so the focus ring is not clipped by the

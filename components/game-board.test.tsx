@@ -361,7 +361,7 @@ describe('GameBoard status', () => {
   test('a held chord presses its hidden 3×3, follows the pointer, and lifts on release', () => {
     render(<GameBoard rows={4} cols={4} mineCount={0} showStatus={false} />);
     const isPressed = (r: number, c: number) =>
-      cell(r, c).className.includes(' brightness-[0.8] shadow-');
+      cell(r, c).className.split(' ').includes('brightness-[0.8]');
 
     // Chording a hidden cell is a no-op, so the whole 3×3 stays hidden and sinks.
     fireEvent.mouseDown(cell(1, 1), { buttons: 3 });
