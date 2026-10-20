@@ -179,20 +179,12 @@ function cellClass(cell: Cell, pressed: boolean): string {
     // Glow on the glyph, not on a box — the boxed tile is what we're shedding.
     return `${revealed} cursor-pointer text-vermilion`;
   }
-  // A number is a chord target, so it takes the hover frame too — fainter,
-  // since it sits on bare ink rather than the vermilion face. Empty zeros have
-  // nothing to act on and stay unframed.
-  if (cell.state === 'revealed') {
-    return cell.adjacent > 0
-      ? `${revealed} hover:ring-1 hover:ring-inset hover:ring-seal/40`
-      : revealed;
-  }
-  // The hover cue is a seal-cream hairline that snaps tile to tile — the
-  // pointer's cell, framed like a specimen. No scale transform (it would tear
-  // the merged region apart) and no transition (the snap is the point). The
-  // ring is a box-shadow, so it follows tileRadius's per-corner rounding and
-  // composes with the pressed inset below.
-  const unrevealed = `${base} hover:ring-1 hover:ring-inset hover:ring-seal active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] ${
+  if (cell.state === 'revealed') return revealed;
+  // No scale transform on hover: it would tear the merged region apart. A face
+  // lighten reads as the same mass responding instead — as a filter rather than
+  // a second background colour, so the plain and flagged faces lighten by the
+  // same amount without a hand-tuned hover colour for each.
+  const unrevealed = `${base} transition-[filter] hover:brightness-125 motion-reduce:transition-none active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] ${
     pressed && cell.state === 'hidden' ? PRESSED : ''
   }`;
   // Flagged tiles sit a shade lighter so a flag reads at a glance on the mass.
