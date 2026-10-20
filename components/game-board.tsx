@@ -38,12 +38,6 @@ const LONG_PRESS_MS = 450;
  * a latch that a missing click could strand.
  */
 const SUPPRESS_MS = 500;
-/**
- * How long after a simultaneous-click chord we ignore clicks and contextmenus.
- * Releasing both buttons leaves behind up to one click and one contextmenu, and
- * the order varies by platform — so this is a window, not an event count.
- */
-const CHORD_SUPPRESS_MS = 300;
 /** How long the shake and ✕ stay up before the board resets after a loss. */
 const RESET_DELAY_MS = 900;
 /** Corner radius where the unrevealed mass ends. */
@@ -270,8 +264,32 @@ export default function GameBoard({
   } | null>(null);
   /** Timestamp until which pointer events are treated as long-press fallout. */
   const suppressUntil = useRef(0);
-  /** Timestamp until which pointer events are treated as chord fallout. */
-  const chordSuppressUntil = useRef(0);
+  /**
+   * Latched by a chord, cleared by the next fresh press. Releasing a chord
+   * leaves behind a left release and up to one contextmenu, in an order that
+   * varies by platform; all of it lands before the player's next press, so a
+   * latch swallows exactly that fallout. (A time window here also ate the
+   * player's own next flag when they chorded and flagged within it.)
+   */
+  const inChord = useRef(false);
+  /**
+   * Set when a right press has already flagged, so the contextmenu that
+   * follows it (on press on macOS, on release on Windows) doesn't toggle the
+   * flag straight back. Cleared by the next fresh press.
+   */
+  const flaggedOnPress = useRef(false);
+  /**
+   * The last pointer to press a cell. Mouse reveals happen on mouseup (see
+   * the cell's onMouseUp); taps keep the click path, since a touch device's
+   * compat mouse events are not reliable enough to reveal on.
+   */
+  const lastPointer = useRef<string>('');
+  /**
+   * A left press began on a cell and has not been released yet. Only then
+   * does a release reveal — a drag that starts off the board (a text
+   * selection, say) must not open the tile it ends on.
+   */
+  const leftArmed = useRef(false);
   /** Set when a hold has flagged, cleared when the finger lifts. */
   const longPressFired = useRef(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -459,6 +477,17 @@ export default function GameBoard({
     }
   }, [focusIdx]);
 
+  // A release anywhere disarms the left press. React's handlers run at the
+  // root, before this window listener, so a cell's own onMouseUp sees the
+  // press still armed.
+  useEffect(() => {
+    const disarm = () => {
+      leftArmed.current = false;
+    };
+    window.addEventListener('mouseup', disarm);
+    return () => window.removeEventListener('mouseup', disarm);
+  }, []);
+
   // The preview lasts exactly as long as the hold. Listening on window catches
   // a release outside the board, which the cells never see.
   useEffect(() => {
@@ -582,20 +611,43 @@ export default function GameBoard({
                   ? undefined
                   : { borderRadius: tileRadius(board, i) }
               }
+              onPointerDown={(e) => {
+                lastPointer.current = e.pointerType;
+              }}
               onMouseDown={(e) => {
                 // Classic simultaneous chording: both buttons down at once.
                 // `buttons` is the full mask, so this catches either press
                 // order. Middle-click is the one-handed equivalent.
                 if (e.buttons === 3 || e.button === 1) {
                   e.preventDefault(); // middle-click autoscroll
-                  chordSuppressUntil.current = Date.now() + CHORD_SUPPRESS_MS;
+                  inChord.current = true;
                   handleChord(i);
                   chordHeld.current = true;
                   setChordAt(i);
+                  return;
                 }
-                // Right-then-left needs no extra care: the contextmenu that
-                // fired on the right press landed on this cell, and a chord
-                // target is revealed — toggleFlag no-ops on revealed cells.
+                // A fresh press: any earlier gesture's fallout has landed.
+                inChord.current = false;
+                flaggedOnPress.current = false;
+                leftArmed.current = e.button === 0;
+                if (e.button === 2) {
+                  // Flag on the press, as the classic game does — not on
+                  // contextmenu, which Windows only fires on release.
+                  // Right-then-left needs no extra care: a chord target is
+                  // revealed, and toggleFlag no-ops on revealed cells.
+                  flaggedOnPress.current = true;
+                  handleFlag(i);
+                }
+              }}
+              onMouseUp={(e) => {
+                // Reveal on release, on whatever cell is under the pointer.
+                // A click only fires when press and release land on the same
+                // cell, so a fast hand drifting over a border lost the reveal.
+                if (lastPointer.current !== 'mouse') return;
+                if (e.button !== 0 || e.ctrlKey) return; // ⌃-click flags on macOS
+                if (inChord.current || !leftArmed.current) return;
+                leftArmed.current = false;
+                handleReveal(i);
               }}
               onMouseEnter={(e) => {
                 // The preview follows the pointer while the chord is held, as
@@ -606,11 +658,14 @@ export default function GameBoard({
                 chordHeld.current = held;
                 setChordAt(held ? i : null);
               }}
-              onClick={() => {
+              onClick={(e) => {
+                // Mouse clicks were already handled on mouseup. detail 0 is a
+                // click with no pointer behind it (screen reader activation).
+                if (lastPointer.current === 'mouse' && e.detail !== 0) return;
                 // Swallow the click a long-press synthesizes. The window
                 // expires on its own, so a dropped click cannot strand it.
                 if (Date.now() < suppressUntil.current) return;
-                if (Date.now() < chordSuppressUntil.current) return;
+                if (inChord.current) return;
                 handleReveal(i);
               }}
               onContextMenu={(e) => {
@@ -618,8 +673,13 @@ export default function GameBoard({
                 // Mobile fires contextmenu partway through the same hold we
                 // already flagged on; a second toggle would undo that flag.
                 if (Date.now() < suppressUntil.current) return;
-                // Likewise for the right button we just chorded with.
-                if (Date.now() < chordSuppressUntil.current) return;
+                // Likewise for the right button we just chorded with, or one
+                // whose press already placed the flag.
+                if (inChord.current) return;
+                if (flaggedOnPress.current) {
+                  flaggedOnPress.current = false;
+                  return;
+                }
                 // If the platform menu beat our timer, this contextmenu *is*
                 // the flag gesture — drop the pending hold so it cannot toggle
                 // the flag straight back off. No suppression window here: on

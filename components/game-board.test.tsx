@@ -358,6 +358,49 @@ describe('GameBoard status', () => {
     expect(cell(1, 1)).toHaveAttribute('data-state', 'hidden');
   });
 
+  /** A real mouse press: pointerdown first, then the button's mousedown. */
+  function press(el: HTMLElement, button: 0 | 2) {
+    fireEvent.pointerDown(el, { pointerType: 'mouse', button });
+    fireEvent.mouseDown(el, { button, buttons: button === 0 ? 1 : 2 });
+  }
+
+  test('a right press straight after a chord still flags', () => {
+    seedBoard();
+    render(<GameBoard rows={8} cols={8} mineCount={10} showStatus={false} />);
+    fireEvent.click(cell(0, 0));
+
+    fireEvent.mouseDown(cell(0, 1), { buttons: 3 });
+    // No delay: an expert player flags the next tile within milliseconds.
+    press(cell(1, 2), 2);
+    expect(cell(1, 2)).toHaveAttribute('data-state', 'flagged');
+    // The contextmenu that trails the same press must not unflag it.
+    fireEvent.contextMenu(cell(1, 2));
+    expect(cell(1, 2)).toHaveAttribute('data-state', 'flagged');
+  });
+
+  test('a left press reveals the cell it is released on', () => {
+    seedBoard();
+    render(<GameBoard rows={8} cols={8} mineCount={10} showStatus={false} />);
+    fireEvent.click(cell(0, 0));
+
+    // Pressed on the mine at (1,2), drifted up to the safe (0,2) and let go:
+    // the release decides, as in the classic game.
+    press(cell(1, 2), 0);
+    fireEvent.mouseUp(cell(0, 2), { button: 0 });
+    expect(cell(0, 2)).toHaveAttribute('data-state', 'revealed');
+    expect(cell(1, 2)).toHaveAttribute('data-state', 'hidden');
+  });
+
+  test('a drag that starts off the board reveals nothing', () => {
+    render(<GameBoard rows={3} cols={3} mineCount={1} showStatus={false} />);
+    press(cell(0, 0), 2); // a mouse was used here before
+    fireEvent.mouseUp(cell(0, 0), { button: 2 });
+
+    fireEvent.mouseDown(document.body, { button: 0, buttons: 1 });
+    fireEvent.mouseUp(cell(2, 2), { button: 0 });
+    expect(cell(2, 2)).toHaveAttribute('data-state', 'hidden');
+  });
+
   test('a held chord presses its hidden 3×3, follows the pointer, and lifts on release', () => {
     render(<GameBoard rows={4} cols={4} mineCount={0} showStatus={false} />);
     const isPressed = (r: number, c: number) =>
