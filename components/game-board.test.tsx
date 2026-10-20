@@ -358,6 +358,29 @@ describe('GameBoard status', () => {
     expect(cell(1, 1)).toHaveAttribute('data-state', 'hidden');
   });
 
+  test('a held chord presses its hidden 3×3, follows the pointer, and lifts on release', () => {
+    render(<GameBoard rows={4} cols={4} mineCount={0} showStatus={false} />);
+    const isPressed = (r: number, c: number) =>
+      cell(r, c).className.includes(' brightness-[0.8] shadow-');
+
+    // Chording a hidden cell is a no-op, so the whole 3×3 stays hidden and sinks.
+    fireEvent.mouseDown(cell(1, 1), { buttons: 3 });
+    expect(isPressed(0, 0)).toBe(true);
+    expect(isPressed(2, 2)).toBe(true);
+    expect(isPressed(3, 3)).toBe(false);
+
+    fireEvent.mouseEnter(cell(2, 2), { buttons: 3 });
+    expect(isPressed(0, 0)).toBe(false);
+    expect(isPressed(3, 3)).toBe(true);
+
+    fireEvent.mouseUp(window);
+    expect(isPressed(2, 2)).toBe(false);
+
+    // Plain hovering after the release never presses anything.
+    fireEvent.mouseEnter(cell(1, 1), { buttons: 0 });
+    expect(isPressed(1, 1)).toBe(false);
+  });
+
   test('the timer keeps its padded width and the win is announced', () => {
     render(<GameBoard rows={3} cols={3} mineCount={0} />);
     const timer = screen.getByLabelText('timer');

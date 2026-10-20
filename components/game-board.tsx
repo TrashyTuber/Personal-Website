@@ -159,7 +159,14 @@ function tileRadius(board: Board, index: number): string {
   return `${corner(up, left)} ${corner(up, right)} ${corner(down, right)} ${corner(down, left)}`;
 }
 
-function cellClass(cell: Cell): string {
+/**
+ * Classic chord preview: while both buttons (or the middle) are held, the
+ * hidden tiles around the pointer sink, so the player sees which 3×3 the chord
+ * covers — and, when a chord no-ops on a wrong flag count, where it looked.
+ */
+const PRESSED = 'brightness-[0.8] shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)]';
+
+function cellClass(cell: Cell, pressed: boolean): string {
   // `relative` + `focus-visible:z-10` so the focus ring is not clipped by the
   // neighbouring cells it now touches (the grid has no gap).
   const base =
@@ -172,12 +179,22 @@ function cellClass(cell: Cell): string {
     // Glow on the glyph, not on a box — the boxed tile is what we're shedding.
     return `${revealed} cursor-pointer text-vermilion`;
   }
-  if (cell.state === 'revealed') return revealed;
-  // No scale transform on hover: it would tear the merged region apart. A face
-  // lighten reads as the same mass responding instead — as a filter rather than
-  // a second background colour, so the plain and flagged faces lighten by the
-  // same amount without a hand-tuned hover colour for each.
-  const unrevealed = `${base} transition-[filter] hover:brightness-125 active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] motion-reduce:transition-none`;
+  // A number is a chord target, so it takes the hover frame too — fainter,
+  // since it sits on bare ink rather than the vermilion face. Empty zeros have
+  // nothing to act on and stay unframed.
+  if (cell.state === 'revealed') {
+    return cell.adjacent > 0
+      ? `${revealed} hover:ring-1 hover:ring-inset hover:ring-seal/40`
+      : revealed;
+  }
+  // The hover cue is a seal-cream hairline that snaps tile to tile — the
+  // pointer's cell, framed like a specimen. No scale transform (it would tear
+  // the merged region apart) and no transition (the snap is the point). The
+  // ring is a box-shadow, so it follows tileRadius's per-corner rounding and
+  // composes with the pressed inset below.
+  const unrevealed = `${base} hover:ring-1 hover:ring-inset hover:ring-seal active:brightness-[0.8] active:shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] ${
+    pressed && cell.state === 'hidden' ? PRESSED : ''
+  }`;
   // Flagged tiles sit a shade lighter so a flag reads at a glance on the mass.
   return cell.state === 'flagged'
     ? `${unrevealed} bg-[#a03119]`
@@ -240,6 +257,14 @@ export default function GameBoard({
   const [shaking, setShaking] = useState(false);
   const [flagMode, setFlagMode] = useState(false);
   const [focusIdx, setFocusIdx] = useState(0);
+  /** Centre of the held chord's 3×3 preview; null when no chord is held. */
+  const [chordAt, setChordAt] = useState<number | null>(null);
+  /**
+   * Whether a chord hold may still be in progress. A ref, not chordAt, gates
+   * the hover handler: chordAt clears when the pointer leaves the board, and
+   * the preview must pick back up if it re-enters with the buttons still down.
+   */
+  const chordHeld = useRef(false);
   /** Bumped on reset to remount the Timer back at zero. */
   const [runId, setRunId] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -438,6 +463,26 @@ export default function GameBoard({
     }
   }, [focusIdx]);
 
+  // The preview lasts exactly as long as the hold. Listening on window catches
+  // a release outside the board, which the cells never see.
+  useEffect(() => {
+    if (chordAt === null) return;
+    const release = () => {
+      chordHeld.current = false;
+      setChordAt(null);
+    };
+    window.addEventListener('mouseup', release);
+    window.addEventListener('blur', release);
+    return () => {
+      window.removeEventListener('mouseup', release);
+      window.removeEventListener('blur', release);
+    };
+  }, [chordAt]);
+
+  const pressed = new Set<number>(
+    chordAt === null ? [] : [chordAt, ...neighbors(board, chordAt)],
+  );
+
   const remaining = Math.max(0, minesRemaining(board));
   const announcement =
     board.status === 'lost'
@@ -490,6 +535,7 @@ export default function GameBoard({
         role="group"
         aria-label="Minesweeper board"
         onKeyDown={onKeyDown}
+        onMouseLeave={() => setChordAt(null)}
         // gap-0: adjacent unrevealed cells must share an edge with no seam, so
         // a run of them reads as one region (see tileRadius).
         // Loss cue must contrast with the vermilion board face, so the flash
@@ -534,7 +580,7 @@ export default function GameBoard({
               aria-label={
                 opens ? `${opens} — uncovered, open page` : `cell ${row},${col}`
               }
-              className={cellClass(cell)}
+              className={cellClass(cell, pressed.has(i))}
               style={
                 cell.state === 'revealed'
                   ? undefined
@@ -548,10 +594,21 @@ export default function GameBoard({
                   e.preventDefault(); // middle-click autoscroll
                   chordSuppressUntil.current = Date.now() + CHORD_SUPPRESS_MS;
                   handleChord(i);
+                  chordHeld.current = true;
+                  setChordAt(i);
                 }
                 // Right-then-left needs no extra care: the contextmenu that
                 // fired on the right press landed on this cell, and a chord
                 // target is revealed — toggleFlag no-ops on revealed cells.
+              }}
+              onMouseEnter={(e) => {
+                // The preview follows the pointer while the chord is held, as
+                // in the classic game. Re-check the mask: a release we missed
+                // must not leave the preview stuck on.
+                if (!chordHeld.current) return;
+                const held = e.buttons === 3 || e.buttons === 4;
+                chordHeld.current = held;
+                setChordAt(held ? i : null);
               }}
               onClick={() => {
                 // Swallow the click a long-press synthesizes. The window
