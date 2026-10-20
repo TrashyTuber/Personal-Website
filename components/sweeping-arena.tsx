@@ -57,15 +57,13 @@ export default function SweepingArena({
   const [winMs, setWinMs] = useState<number | null>(null);
   /** Bumped by SWEEP AGAIN to remount a fresh board of the same difficulty. */
   const [runId, setRunId] = useState(0);
-  /** A run has started on the current board — shows the reset ↻. */
-  const [live, setLive] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   /**
-   * The tabs live inside the board's status bar, so picking a difficulty (or
-   * re-picking it to reset) remounts the very button that has focus. Set on select, consumed after
-   * the remount to hand focus to the new board's matching tab.
+   * The tabs and the reset live inside the board's status bar, so pressing
+   * either remounts the very button that has focus. Holds a selector for that
+   * button's replacement, consumed after the remount.
    */
-  const refocus = useRef(false);
+  const refocus = useRef<string | null>(null);
 
   const record = records.find((r) => r.id === selected) ?? records[0];
   const expert = records.find((r) => r.id === 'expert') ?? records[0];
@@ -73,10 +71,10 @@ export default function SweepingArena({
 
   useEffect(() => {
     if (!refocus.current) return;
-    refocus.current = false;
     rootRef.current
-      ?.querySelector<HTMLButtonElement>(`[data-difficulty="${selected}"]`)
+      ?.querySelector<HTMLButtonElement>(refocus.current)
       ?.focus();
+    refocus.current = null;
   }, [selected, runId]);
 
   // F2: the original Windows new-game key, still muscle memory for sweepers.
@@ -106,38 +104,41 @@ export default function SweepingArena({
       : null;
 
   function select(id: DifficultyId) {
-    refocus.current = true;
-    if (id === selected) {
-      sweepAgain();
-      return;
-    }
+    refocus.current = `[data-difficulty="${id}"]`;
     setSelected(id);
     setStatus('playing');
     setWinMs(null);
-    setLive(false);
   }
 
   function sweepAgain() {
     setRunId((n) => n + 1);
     setStatus('playing');
     setWinMs(null);
-    setLive(false);
-  }
-
-  function onStatusChange(next: GameStatus) {
-    setStatus(next);
-    // A loss resets the board on its own, back to an unstarted run. ('playing'
-    // can't be the cue — the board reports it after every move.)
-    if (next === 'lost') setLive(false);
   }
 
   const tabs = (
-    <DifficultyTabs
-      records={records}
-      selected={selected}
-      onSelect={select}
-      live={live && isPlayable}
-    />
+    <DifficultyTabs records={records} selected={selected} onSelect={select} />
+  );
+  // The smiley's successor: the centre of the bar, split from the tabs by a
+  // hairline so it reads as an action, not a fourth difficulty.
+  const controls = (
+    <span className="flex items-center gap-1 sm:gap-5">
+      {tabs}
+      <span aria-hidden="true" className="hidden h-3 w-px bg-hairline-2 sm:block" />
+      <button
+        type="button"
+        data-reset
+        aria-label="New board"
+        title="New board (F2)"
+        onClick={() => {
+          refocus.current = '[data-reset]';
+          sweepAgain();
+        }}
+        className="-my-1 px-1 py-1 font-mono-game text-sm text-faint sm:px-1.5 transition-colors hover:text-paper focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-vermilion motion-reduce:transition-none"
+      >
+        ↻
+      </button>
+    </span>
   );
   const par = formatTime(record.timeSeconds);
 
@@ -183,11 +184,10 @@ export default function SweepingArena({
           rows={record.rows}
           cols={record.cols}
           mineCount={record.mines}
-          title={tabs}
+          title={controls}
           par={par}
           className={BOARD_WIDTH[record.id]}
-          onStatusChange={onStatusChange}
-          onStart={() => setLive(true)}
+          onStatusChange={setStatus}
           onWin={setWinMs}
         />
       ) : (

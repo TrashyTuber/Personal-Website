@@ -75,7 +75,7 @@ describe('SweepingArena', () => {
     ).toHaveAttribute('data-state', 'hidden');
   });
 
-  test('re-pressing the active tab or F2 deals a fresh board mid-run', () => {
+  test('the reset button or F2 deals a fresh board mid-run', () => {
     // A reveal would flood (and win) these mine-free boards, so a flag marks
     // the board as touched instead.
     render(
@@ -89,12 +89,10 @@ describe('SweepingArena', () => {
     fireEvent.contextMenu(first());
     expect(first()).toHaveAttribute('data-state', 'flagged');
 
-    const tab = screen.getByRole('button', { name: /Intermediate — new board/ });
-    fireEvent.click(tab);
+    fireEvent.click(screen.getByRole('button', { name: 'New board' }));
     expect(first()).toHaveAttribute('data-state', 'hidden');
-    expect(
-      screen.getByRole('button', { name: /Intermediate — new board/ }),
-    ).toHaveFocus();
+    // The button remounted with the board; focus follows to its replacement.
+    expect(screen.getByRole('button', { name: 'New board' })).toHaveFocus();
 
     fireEvent.contextMenu(first());
     fireEvent.keyDown(window, { key: 'F2' });

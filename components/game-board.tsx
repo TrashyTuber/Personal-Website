@@ -76,8 +76,6 @@ export interface GameBoardProps {
    * *visible* feedback without owning the game state.
    */
   onStatusChange?: (status: GameStatus) => void;
-  /** Notified on the first reveal of each run — the moment the clock starts. */
-  onStart?: () => void;
   /**
    * Notified with the ids of every section uncovered so far — after a move that
    * opens one, and once on mount if any were restored from sessionStorage. The
@@ -230,7 +228,6 @@ export default function GameBoard({
   // without producing two conflicting Tailwind max-w-* classes.
   className = 'max-w-[420px]',
   onStatusChange,
-  onStart,
   onFoundChange,
   onWin,
 }: GameBoardProps) {
@@ -372,7 +369,6 @@ export default function GameBoard({
       // eslint-disable-next-line react-hooks/purity
       startedAt.current = Date.now();
       setStarted(true);
-      onStart?.();
     }
     commit(reveal(board, index));
   }
