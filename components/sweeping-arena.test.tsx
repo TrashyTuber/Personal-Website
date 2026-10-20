@@ -75,6 +75,32 @@ describe('SweepingArena', () => {
     ).toHaveAttribute('data-state', 'hidden');
   });
 
+  test('re-pressing the active tab or F2 deals a fresh board mid-run', () => {
+    // A reveal would flood (and win) these mine-free boards, so a flag marks
+    // the board as touched instead.
+    render(
+      <SweepingArena
+        records={TEST_RECORDS}
+        defaultDifficulty="intermediate"
+        playable={['beginner', 'intermediate', 'expert']}
+      />,
+    );
+    const first = () => screen.getAllByRole('button', { name: /^cell / })[0];
+    fireEvent.contextMenu(first());
+    expect(first()).toHaveAttribute('data-state', 'flagged');
+
+    const tab = screen.getByRole('button', { name: /Intermediate — new board/ });
+    fireEvent.click(tab);
+    expect(first()).toHaveAttribute('data-state', 'hidden');
+    expect(
+      screen.getByRole('button', { name: /Intermediate — new board/ }),
+    ).toHaveFocus();
+
+    fireEvent.contextMenu(first());
+    fireEvent.keyDown(window, { key: 'F2' });
+    expect(first()).toHaveAttribute('data-state', 'hidden');
+  });
+
   test('non-playable difficulty shows the record but no board', () => {
     render(
       <SweepingArena

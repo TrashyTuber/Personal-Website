@@ -57,10 +57,12 @@ export default function SweepingArena({
   const [winMs, setWinMs] = useState<number | null>(null);
   /** Bumped by SWEEP AGAIN to remount a fresh board of the same difficulty. */
   const [runId, setRunId] = useState(0);
+  /** A run has started on the current board — shows the reset ↻. */
+  const [live, setLive] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   /**
-   * The tabs live inside the board's status bar, so picking a difficulty
-   * remounts the very button that has focus. Set on select, consumed after
+   * The tabs live inside the board's status bar, so picking a difficulty (or
+   * re-picking it to reset) remounts the very button that has focus. Set on select, consumed after
    * the remount to hand focus to the new board's matching tab.
    */
   const refocus = useRef(false);
@@ -75,7 +77,18 @@ export default function SweepingArena({
     rootRef.current
       ?.querySelector<HTMLButtonElement>(`[data-difficulty="${selected}"]`)
       ?.focus();
-  }, [selected]);
+  }, [selected, runId]);
+
+  // F2: the original Windows new-game key, still muscle memory for sweepers.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'F2') return;
+      e.preventDefault();
+      sweepAgain();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Modeled minesweeper.online standing for the visitor's win. Fitted per
   // render from the record's sampled anchors — five points through a linear
@@ -94,19 +107,37 @@ export default function SweepingArena({
 
   function select(id: DifficultyId) {
     refocus.current = true;
+    if (id === selected) {
+      sweepAgain();
+      return;
+    }
     setSelected(id);
     setStatus('playing');
     setWinMs(null);
+    setLive(false);
   }
 
   function sweepAgain() {
     setRunId((n) => n + 1);
     setStatus('playing');
     setWinMs(null);
+    setLive(false);
+  }
+
+  function onStatusChange(next: GameStatus) {
+    setStatus(next);
+    // A loss resets the board on its own, back to an unstarted run. ('playing'
+    // can't be the cue — the board reports it after every move.)
+    if (next === 'lost') setLive(false);
   }
 
   const tabs = (
-    <DifficultyTabs records={records} selected={selected} onSelect={select} />
+    <DifficultyTabs
+      records={records}
+      selected={selected}
+      onSelect={select}
+      live={live && isPlayable}
+    />
   );
   const par = formatTime(record.timeSeconds);
 
@@ -155,7 +186,8 @@ export default function SweepingArena({
           title={tabs}
           par={par}
           className={BOARD_WIDTH[record.id]}
-          onStatusChange={setStatus}
+          onStatusChange={onStatusChange}
+          onStart={() => setLive(true)}
           onWin={setWinMs}
         />
       ) : (
@@ -181,7 +213,7 @@ export default function SweepingArena({
       </p>
       <p
         title={`ranks & standing model as of ${RANKS_AS_OF}`}
-        className="mt-1 text-center font-mono-game text-xs text-faint"
+        className="mt-3 text-center font-mono-game text-xs text-faint"
       >
         {standingLine ?? (
           <>
