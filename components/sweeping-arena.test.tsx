@@ -25,7 +25,7 @@ const cellCount = () =>
   screen.getAllByRole('button', { name: /^cell / }).length;
 
 describe('SweepingArena', () => {
-  test('default difficulty mounts, stele click swaps geometry and selection', () => {
+  test('default difficulty mounts, tab click swaps geometry, par, and focus', () => {
     render(
       <SweepingArena
         records={TEST_RECORDS}
@@ -34,15 +34,17 @@ describe('SweepingArena', () => {
       />,
     );
     expect(cellCount()).toBe(6); // 2×3
-    expect(screen.getByText(/THE RECORD IS 14\.780/)).toBeInTheDocument();
+    expect(screen.getByLabelText('record 14.780')).toBeInTheDocument();
+    expect(screen.getByText(/WORLD #344/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Expert/ }));
     expect(cellCount()).toBe(9); // fresh 3×3 board
-    expect(screen.getByRole('button', { name: /Expert/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    expect(screen.getByText(/THE RECORD IS 52\.803/)).toBeInTheDocument();
+    const expertTab = screen.getByRole('button', { name: /Expert/ });
+    expect(expertTab).toHaveAttribute('aria-pressed', 'true');
+    expect(expertTab).toHaveTextContent('EXP');
+    // The tab remounted with the board; focus follows to its replacement.
+    expect(expertTab).toHaveFocus();
+    expect(screen.getByLabelText('record 52.803')).toBeInTheDocument();
   });
 
   test('win shows the delta line and SWEEP AGAIN resets the board', () => {
@@ -63,7 +65,7 @@ describe('SweepingArena', () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /SWEEP AGAIN/ }));
-    expect(screen.getByText(/THE RECORD IS 5\.000/)).toBeInTheDocument();
+    expect(screen.getByText(/WORLD #4,221/)).toBeInTheDocument();
     expect(
       screen.queryByText(/on minesweeper\.online/),
     ).not.toBeInTheDocument();

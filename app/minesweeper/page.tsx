@@ -6,16 +6,10 @@ export const metadata: Metadata = { title: 'Minesweeper — Yiming Jia' };
 
 export default function MinesweeperPage() {
   return (
-    <div className="py-16">
-      <div className="mx-auto max-w-2xl px-6 text-center">
-        <p lang="zh-Hans" className="font-display-sc text-sm tracking-[0.6em] text-muted">
-          个 人 最 佳
-        </p>
-        <h1 className="mt-3 font-mono-game text-2xl tracking-[0.3em]">
-          PERSONAL BESTS
-        </h1>
-        <div className="mx-auto mt-4 h-px w-16 bg-hairline-2" />
-      </div>
+    <div className="py-6">
+      {/* The nav already says SWEEP; the heading is for assistive tech and
+          crawlers only, so the board gets the whole viewport. */}
+      <h1 className="sr-only">Minesweeper personal bests</h1>
 
       {/*
         Two instances, one per breakpoint (geometry props are read once at
@@ -25,14 +19,14 @@ export default function MinesweeperPage() {
         and shows Intermediate/Expert as records only. display:none keeps the
         hidden instance out of the a11y tree.
       */}
-      <div className="mt-10 hidden md:block">
+      <div className="hidden md:block">
         <SweepingArena
           records={SWEEP_RECORDS}
           defaultDifficulty="intermediate"
           playable={['beginner', 'intermediate', 'expert']}
         />
       </div>
-      <div className="mt-10 md:hidden">
+      <div className="md:hidden">
         <SweepingArena
           records={SWEEP_RECORDS}
           defaultDifficulty="beginner"

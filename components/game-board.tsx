@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   checkWin,
@@ -59,12 +59,15 @@ export interface GameBoardProps {
   /** sessionStorage key for persisting found sections; omit to disable. */
   persistKey?: string;
   showStatus?: boolean;
-  title?: string;
+  /** Centre of the status bar — a string title, or a control (e.g. a selector). */
+  title?: ReactNode;
   /**
    * BCP-47 tag for `title`. The default title is Latin, so this cannot be
    * hardcoded — callers passing hanzi (e.g. 扫雷) set `titleLang="zh-Hans"`.
    */
   titleLang?: string;
+  /** A target time shown faint after the timer ("000.00 / 14.780"). */
+  par?: string;
   className?: string;
   /**
    * Notified whenever the run's status settles — 'won'/'lost' from a move, and
@@ -220,6 +223,7 @@ export default function GameBoard({
   showStatus = true,
   title = 'YIMING JIA',
   titleLang,
+  par,
   // Max width lives in this prop (not hardcoded) so callers can override it
   // without producing two conflicting Tailwind max-w-* classes.
   className = 'max-w-[420px]',
@@ -460,11 +464,18 @@ export default function GameBoard({
           >
             {title}
           </span>
-          <Timer
-            key={runId}
-            running={started && board.status === 'playing'}
-            won={board.status === 'won'}
-          />
+          <span>
+            <Timer
+              key={runId}
+              running={started && board.status === 'playing'}
+              won={board.status === 'won'}
+            />
+            {par && (
+              <span aria-label={`record ${par}`} className="text-faint">
+                {' '}/ {par}
+              </span>
+            )}
+          </span>
         </div>
       )}
       <p role="status" aria-live="polite" className="sr-only">
