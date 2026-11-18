@@ -36,12 +36,12 @@ export const projects: Project[] = [
     title: 'Saviu',
     year: '2026',
     blurb:
-      'A disaster-triage tool that ranks which policyholders an insurer should reach first after a storm or quake — HackUTD Honorable Mention, Best Use of SpacetimeDB.',
+      'A disaster-triage tool that ranks which policyholders an insurer should reach first after a storm or quake — Honorable Mention in HackUTD’s Spacetime track.',
     tech: ['React', 'SpacetimeDB'],
     stat: { value: '30k', label: 'households synced live across every screen' },
     links: [{ label: 'code', href: 'https://github.com/NateeeXu/UTD_ZERODAY' }],
     body: [
-      'Saviu is a disaster-triage prototype built at HackUTD on a team of two: after a storm or quake, it ranks which policyholders an insurer should reach first. It earned an Honorable Mention, Best Use of SpacetimeDB.',
+      'Saviu is a disaster-triage prototype built at HackUTD on a team of two: after a storm or quake, it ranks which policyholders an insurer should reach first. Built for the State Farm and Spacetime tracks, it earned an Honorable Mention in the Spacetime track.',
       'I shipped the whole front end — a live priority map, a phone app for field adjusters, and a check-in page. Every screen syncs live from three databases, and it stays fast at 30,000 households by subscribing only to the rows each screen needs.',
       'The adjuster app is built to be used one-handed: a swipeable task sheet, live chat, and QR sign-in.',
     ],
