@@ -364,8 +364,50 @@ function Patches({ active }: { active: boolean }) {
   );
 }
 
+/* Saviu — the priority map: households scattered across the region, the
+   storm's footprint as one dashed hairline, and the households inside it
+   called in priority order (here: nearest the eye first). First call in
+   vermilion. */
+const SAVIU_STORM = { x: 170, y: 125, r: 88 };
+const SAVIU_HOMES = (() => {
+  const rand = mulberry32(41);
+  const homes = Array.from({ length: 70 }, () => ({ x: 20 + rand() * 360, y: 15 + rand() * 220 }));
+  const dist = (h: { x: number; y: number }) => Math.hypot(h.x - SAVIU_STORM.x, h.y - SAVIU_STORM.y);
+  const hit = homes.filter((h) => dist(h) < SAVIU_STORM.r).sort((a, b) => dist(a) - dist(b));
+  const rank = new Map(hit.map((h, i) => [h, i]));
+  return homes.map((h) => ({ ...h, rank: rank.get(h) ?? -1 }));
+})();
+const SAVIU_HIT = SAVIU_HOMES.filter((h) => h.rank >= 0).length;
+
+function Saviu({ active }: { active: boolean }) {
+  const { tick, still } = useTick(active, 220);
+  const step = still ? SAVIU_HIT : tick % (SAVIU_HIT + 8);
+  return (
+    <svg viewBox="0 0 400 250" className="h-auto w-full" role="img" aria-label="A priority map: households inside a storm's footprint are called in ranked order">
+      <circle cx={SAVIU_STORM.x} cy={SAVIU_STORM.y} r={SAVIU_STORM.r} fill="none" stroke="var(--color-hairline-2)" strokeDasharray="3 3" {...HAIR} />
+      {SAVIU_HOMES.map((h, i) => {
+        const called = h.rank >= 0 && h.rank < step;
+        const first = h.rank === 0 && called;
+        return (
+          <g key={i}>
+            {first && <circle cx={h.x} cy={h.y} r={8} fill="none" stroke="var(--color-vermilion)" {...HAIR} />}
+            <circle
+              cx={h.x}
+              cy={h.y}
+              r={first ? 3.5 : 2.5}
+              fill={first ? 'var(--color-vermilion)' : called ? 'var(--color-paper)' : 'var(--color-hairline-2)'}
+              style={{ transition: 'fill 150ms' }}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 const SPECIMENS: Record<string, { Draw: (p: { active: boolean }) => React.ReactElement; caption: string }> = {
   trajecta: { Draw: Trajecta, caption: 'four readers place their verdicts · the chair decides' },
+  saviu: { Draw: Saviu, caption: 'households in the storm’s path · called in priority order' },
   'melody-harmonizer': { Draw: Harmonizer, caption: 'melody above · one chord per note below' },
   'live-coding': { Draw: LiveCoding, caption: 'the score is the code' },
   'prophet-hacks': { Draw: Prophet, caption: 'predicted vs. observed · the judge strikes the overconfident' },

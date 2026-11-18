@@ -32,6 +32,20 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: 'saviu',
+    title: 'Saviu',
+    year: '2026',
+    blurb:
+      'A disaster-triage tool that ranks which policyholders an insurer should reach first after a storm or quake — HackUTD Honorable Mention, Best Use of SpacetimeDB.',
+    tech: ['React', 'SpacetimeDB'],
+    stat: { value: '30k', label: 'households synced live across every screen' },
+    body: [
+      'Saviu is a disaster-triage prototype built at HackUTD on a team of two: after a storm or quake, it ranks which policyholders an insurer should reach first. It earned an Honorable Mention, Best Use of SpacetimeDB.',
+      'I shipped the whole front end — a live priority map, a phone app for field adjusters, and a check-in page. Every screen syncs live from three databases, and it stays fast at 30,000 households by subscribing only to the rows each screen needs.',
+      'The adjuster app is built to be used one-handed: a swipeable task sheet, live chat, and QR sign-in.',
+    ],
+  },
+  {
     slug: 'melody-harmonizer',
     title: 'Melody Harmonizer',
     year: '2026',
