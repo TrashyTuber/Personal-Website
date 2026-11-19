@@ -364,50 +364,73 @@ function Patches({ active }: { active: boolean }) {
   );
 }
 
-/* Saviu — the priority map: households scattered across the region, the
-   storm's footprint as one dashed hairline, and the households inside it
-   called in priority order (here: nearest the eye first). First call in
-   vermilion. */
-const SAVIU_STORM = { x: 170, y: 125, r: 88 };
-const SAVIU_HOMES = (() => {
-  const rand = mulberry32(41);
-  const homes = Array.from({ length: 70 }, () => ({ x: 20 + rand() * 360, y: 15 + rand() * 220 }));
-  const dist = (h: { x: number; y: number }) => Math.hypot(h.x - SAVIU_STORM.x, h.y - SAVIU_STORM.y);
-  const hit = homes.filter((h) => dist(h) < SAVIU_STORM.r).sort((a, b) => dist(a) - dist(b));
-  const rank = new Map(hit.map((h, i) => [h, i]));
-  return homes.map((h) => ({ ...h, rank: rank.get(h) ?? -1 }));
+/* Saviu — the live priority map, after the product: a coast tiled in H3-
+   style hexagons, a storm track coming ashore, and each cell lighting up
+   with its action priority as the impact spreads inland from landfall.
+   P2 slate, P1 gold, P0 vermilion (the one accent). Unaffected land stays
+   a hairline; the sea is left empty so the coastline draws itself. */
+const HEX_R = 11;
+const HEX_W = Math.sqrt(3) * HEX_R;
+// A ragged Gulf-style shore with one bay cut into it; landfall sits on it.
+const coastY = (x: number) => 200 + 18 * Math.sin(x / 50 + 0.6) + 9 * Math.sin(x / 15 + 2) - 0.1 * x;
+const inBay = (x: number, y: number) => ((x - 104) / 30) ** 2 + ((y - 205) / 42) ** 2 < 1;
+const LANDFALL = { x: 258, y: coastY(258) - 6 };
+const hexPoints = (cx: number, cy: number, r: number) =>
+  Array.from({ length: 6 }, (_, k) => {
+    const a = (Math.PI / 3) * k + Math.PI / 6;
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+const SAVIU_CELLS = (() => {
+  const rand = mulberry32(7);
+  const cells: { x: number; y: number; d: number; p: 0 | 1 | 2 | null }[] = [];
+  for (let r = 0; r < 15; r++)
+    for (let c = 0; c < 22; c++) {
+      const x = 12 + c * HEX_W + (r % 2 ? HEX_W / 2 : 0);
+      const y = 12 + r * HEX_R * 1.5;
+      const noise = rand();
+      if (x > 392 || y > coastY(x) || inBay(x, y)) continue; // sea
+      const d = Math.hypot(x - LANDFALL.x, y - LANDFALL.y);
+      const impact = Math.exp(-d / 70) + (noise - 0.5) * 0.16;
+      const p = impact > 0.62 ? 0 : impact > 0.4 ? 1 : impact > 0.22 ? 2 : null;
+      cells.push({ x, y, d, p });
+    }
+  return cells;
 })();
-const SAVIU_HIT = SAVIU_HOMES.filter((h) => h.rank >= 0).length;
+const SAVIU_REACH = Math.max(...SAVIU_CELLS.filter((c) => c.p !== null).map((c) => c.d));
+const PRIORITY_FILL = ['var(--color-vermilion)', 'var(--color-n2)', 'var(--color-n1)'];
+const PRIORITY_OPACITY = [0.9, 0.7, 0.5];
 
 function Saviu({ active }: { active: boolean }) {
-  const { tick, still } = useTick(active, 220);
-  const step = still ? SAVIU_HIT : tick % (SAVIU_HIT + 8);
+  const { tick, still } = useTick(active, 140);
+  const SPREAD = 18; // ticks for the impact to reach its furthest cell
+  const step = still ? SPREAD : tick % (SPREAD + 14);
+  const reach = (Math.min(step, SPREAD) / SPREAD) * SAVIU_REACH;
   return (
-    <svg viewBox="0 0 400 250" className="h-auto w-full" role="img" aria-label="A priority map: households inside a storm's footprint are called in ranked order">
-      <circle cx={SAVIU_STORM.x} cy={SAVIU_STORM.y} r={SAVIU_STORM.r} fill="none" stroke="var(--color-hairline-2)" strokeDasharray="3 3" {...HAIR} />
-      {SAVIU_HOMES.map((h, i) => {
-        const called = h.rank >= 0 && h.rank < step;
-        const first = h.rank === 0 && called;
+    <svg viewBox="0 0 400 250" className="h-auto w-full" role="img" aria-label="A hexagon map of a coastline: as a storm comes ashore, cells light up by action priority, P0 nearest landfall">
+      {SAVIU_CELLS.map((c, i) => {
+        const lit = c.p !== null && c.d <= reach;
         return (
-          <g key={i}>
-            {first && <circle cx={h.x} cy={h.y} r={8} fill="none" stroke="var(--color-vermilion)" {...HAIR} />}
-            <circle
-              cx={h.x}
-              cy={h.y}
-              r={first ? 3.5 : 2.5}
-              fill={first ? 'var(--color-vermilion)' : called ? 'var(--color-paper)' : 'var(--color-hairline-2)'}
-              style={{ transition: 'fill 150ms' }}
-            />
-          </g>
+          <polygon
+            key={i}
+            points={hexPoints(c.x, c.y, HEX_R - 1.5)}
+            fill={c.p === null ? 'none' : PRIORITY_FILL[c.p]}
+            fillOpacity={lit ? PRIORITY_OPACITY[c.p!] : 0}
+            stroke="var(--color-hairline-2)"
+            strokeOpacity={lit ? 0 : 1}
+            style={{ transition: 'fill-opacity 300ms, stroke-opacity 300ms' }}
+            {...HAIR}
+          />
         );
       })}
+      <path d={`M 398 248 Q 300 236 ${LANDFALL.x} ${LANDFALL.y}`} fill="none" stroke="var(--color-faint)" strokeDasharray="3 4" {...HAIR} />
+      <circle cx={LANDFALL.x} cy={LANDFALL.y} r={5} fill="none" stroke="var(--color-paper)" {...HAIR} />
     </svg>
   );
 }
 
 const SPECIMENS: Record<string, { Draw: (p: { active: boolean }) => React.ReactElement; caption: string }> = {
   trajecta: { Draw: Trajecta, caption: 'four readers place their verdicts · the chair decides' },
-  saviu: { Draw: Saviu, caption: 'households in the storm’s path · called in priority order' },
+  saviu: { Draw: Saviu, caption: 'a storm comes ashore · each hexagon lights with its priority, P0 to P2' },
   'melody-harmonizer': { Draw: Harmonizer, caption: 'melody above · one chord per note below' },
   'live-coding': { Draw: LiveCoding, caption: 'the score is the code' },
   'prophet-hacks': { Draw: Prophet, caption: 'predicted vs. observed · the judge strikes the overconfident' },
